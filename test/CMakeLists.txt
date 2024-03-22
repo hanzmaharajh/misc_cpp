@@ -18,3 +18,4 @@ target_link_libraries(tests
         misc_lib
 )
 
+add_test(NAME unit_tests COMMAND tests)
