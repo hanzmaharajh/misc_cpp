@@ -1,10 +1,11 @@
+#include <algorithm.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <algorithm.hpp>
 #include <algorithm>
 #include <array>
 #include <functional>
+#include <iterator>
 #include <vector>
 
 TEST(sort, sort) {
@@ -16,7 +17,7 @@ TEST(sort, sort) {
     std::array arr{4, 3, 2, 1, 0, 9, 8, 7, 6, 5};
 
     EXPECT_CALL(inverse, Call).Times(arr.size());
-    misc::sort_cache_key(arr.begin(), arr.end(), inverse.AsStdFunction());
+    misc::transform_sort(arr.begin(), arr.end(), inverse.AsStdFunction());
 
     EXPECT_TRUE(std::is_sorted(arr.begin(), arr.end(), std::greater<>{}));
   }
@@ -35,7 +36,7 @@ TEST_P(VectorMinMaxTest, min) {
 
   EXPECT_CALL(identity, Call).Times(static_cast<int>(vec.size()));
 
-  const auto min_it = misc::min_element_cache_key(vec.begin(), vec.end(),
+  const auto min_it = misc::transform_min_element(vec.begin(), vec.end(),
                                                   identity.AsStdFunction());
   EXPECT_EQ(min_it, std::min_element(vec.begin(), vec.end()));
 }
@@ -49,7 +50,7 @@ TEST_P(VectorMinMaxTest, minmax) {
 
   EXPECT_CALL(identity, Call).Times(static_cast<int>(vec.size()));
 
-  const auto minmax_its = misc::minmax_element_cache_key(
+  const auto minmax_its = misc::transform_minmax_element(
       vec.begin(), vec.end(), identity.AsStdFunction());
   EXPECT_EQ(minmax_its, std::minmax_element(vec.begin(), vec.end()));
 }
@@ -57,3 +58,15 @@ TEST_P(VectorMinMaxTest, minmax) {
 INSTANTIATE_TEST_SUITE_P(
     minmax, VectorMinMaxTest,
     testing::Values(std::vector<int>{}, std::vector<int>{2, 3, 4, 5, 0, 1, 7}));
+
+TEST(transform_if, transform_if) {
+  const std::vector in{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::vector<int> out;
+  const auto end = misc::transform_if(
+      in.begin(), in.end(), std::back_inserter(out),
+      [](const int& i) { return i % 2 == 0; },
+      [](const int& i) { return i + 10; });
+
+  EXPECT_EQ(end, in.end());
+  EXPECT_EQ(out, (std::vector{10, 12, 14, 16, 18}));
+}

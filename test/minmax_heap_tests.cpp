@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-
 #include <minmax_heap.h>
+
 
 using namespace misc;
 

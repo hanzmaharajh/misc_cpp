@@ -52,7 +52,7 @@ class minmax_heap {
 
   [[nodiscard]] const_reference front() const {
     assert(!empty());
-    return m_heap[0];
+    return m_heap.front();
   }
 
   [[nodiscard]] const_reference back() const {
@@ -73,7 +73,7 @@ class minmax_heap {
   }
 
   void pop_front() {
-    m_heap[0] = std::move(m_heap.back());
+    m_heap.front() = std::move(m_heap.back());
     m_heap.pop_back();
     push_down(1);
   }
@@ -120,7 +120,7 @@ class minmax_heap {
   container_type m_heap;
   value_compare m_comp;
 
-  auto inv_comp() const {
+  [[nodiscard]] auto inv_comp() const {
     return [&](const auto& l, const auto& r) { return m_comp(r, l); };
   }
 
@@ -190,33 +190,33 @@ class minmax_heap {
     return retval;
   }
 
-  bool is_grandchild(index_type i, index_type m) const {
+  [[nodiscard]] bool is_grandchild(index_type i, index_type m) const {
     assert(i > 0);
     assert(m > i);
     return m / 4 == i;
   }
 
-  bool has_grandparent(index_type m) const {
+  [[nodiscard]] bool has_grandparent(index_type m) const {
     assert(m > 0);
     return m > 3;
   }
 
-  bool has_children(index_type m) const {
+  [[nodiscard]] bool has_children(index_type m) const {
     assert(m > 0);
     return 2 * m <= m_heap.size();
   }
 
-  bool is_on_min_level(index_type m) const {
+  [[nodiscard]] bool is_on_min_level(index_type m) const {
     assert(m > 0);
     return (log2(m) & 0b1) == 0;
   }
 
-  index_type parent(index_type m) const {
+  [[nodiscard]] index_type parent(index_type m) const {
     assert(m > 1);
     return m / 2;
   }
 
-  index_type grandparent(index_type m) const {
+  [[nodiscard]] index_type grandparent(index_type m) const {
     assert(m > 2);
     return m / 4;
   }
@@ -259,7 +259,8 @@ class minmax_heap {
 
 template <typename Iter, typename Compare = std::less<
                              typename std::iterator_traits<Iter>::value_type>>
-bool is_minmax_heap(Iter begin, Iter end, const Compare& comp = Compare{}) {
+[[nodiscard]] bool is_minmax_heap(Iter begin, Iter end,
+                                  const Compare& comp = Compare{}) {
   const auto length = std::distance(begin, end);
   if (length < 2) {
     return true;

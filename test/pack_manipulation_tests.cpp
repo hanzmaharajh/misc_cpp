@@ -1,12 +1,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <pack_manipulation.hpp>
+#include <pack_manipulation.h>
 
 TEST(pack, transform_each) {
-  const auto identity = [](const auto &v) { return v; };
-  const auto &[a, b] = misc::transform_each(identity, std::make_shared<int>(2),
-                                           std::make_shared<int>(5));
+  const auto identity = [](const auto& v) { return v; };
+  const auto& [a, b] = misc::transform_each(identity, std::make_shared<int>(2),
+                                            std::make_shared<int>(5));
 
   EXPECT_TRUE(a);
   EXPECT_TRUE(b);
@@ -17,9 +17,9 @@ TEST(pack, transform_each) {
 }
 
 TEST(pack, apply_to_each_lvalue) {
-  const auto identity = [](const auto &v) { return v; };
+  const auto identity = [](const auto& v) { return v; };
   const auto first = std::make_shared<int>(2);
-  const auto &[a, b] =
+  const auto& [a, b] =
       misc::transform_each(identity, first, std::make_shared<int>(5));
 
   EXPECT_TRUE(a);
@@ -32,7 +32,7 @@ TEST(pack, apply_to_each_lvalue) {
 
 TEST(pack, take) {
   const auto first = std::make_shared<int>(2);
-  const auto &[a, b] =
+  const auto& [a, b] =
       misc::take<2, 2>(1, 2, first, std::make_shared<int>(5), 3, 4);
 
   EXPECT_TRUE(a);
@@ -45,7 +45,7 @@ TEST(pack, take) {
 
 TEST(pack, take_first) {
   const auto first = std::make_shared<int>(2);
-  const auto &[a, b] =
+  const auto& [a, b] =
       misc::take_first<2>(first, std::make_shared<int>(5), 3, 4);
 
   EXPECT_TRUE(a);
@@ -58,7 +58,7 @@ TEST(pack, take_first) {
 
 TEST(pack, take_last) {
   const auto first = std::make_shared<int>(2);
-  const auto &[a, b] =
+  const auto& [a, b] =
       misc::take_last<2>(1, 2, first, std::make_shared<int>(5));
 
   EXPECT_TRUE(a);
@@ -86,10 +86,11 @@ TEST(pack, tie) {
 }
 
 namespace {
-template <size_t... Inds> auto return_indexes(std::index_sequence<Inds...>) {
+template <size_t... Inds>
+auto return_indexes(std::index_sequence<Inds...>) {
   return std::make_tuple(Inds...);
 }
-} // namespace
+}  // namespace
 
 TEST(pack, make_index_sequence) {
   const auto [a, b, c, d] = return_indexes(misc::make_index_sequence<3, 4>());

@@ -37,7 +37,7 @@ find_package(Boost 1.74 REQUIRED)
 
 target_include_directories(project_options SYSTEM INTERFACE ${Boost_INCLUDE_DIR})
 
-option(ENABLE_TESTING "Enable Test Builds" OFF)
+option(ENABLE_TESTING "Enable Test Builds" ON)
 
 if(ENABLE_TESTING)
   enable_testing()

@@ -38,7 +38,7 @@ auto tie(std::index_sequence<Inds...>, ArgsTup&& args) {
 /// @tparam Len The length of indexes
 /// @return The index_sequence
 template <std::size_t Start, std::size_t Len>
-auto make_index_sequence() {
+[[nodiscard]] auto make_index_sequence() {
   return details::make_index_sequence<Start, Len>();
 }
 
@@ -48,7 +48,7 @@ auto make_index_sequence() {
 /// @param ...args The pack arguments
 /// @return A tuple containing the first N elements of the input pack
 template <std::size_t N, typename... Args>
-auto take_first(Args&&... args) {
+[[nodiscard]] auto take_first(Args&&... args) {
   return details::take(make_index_sequence<0, N>(),
                        std::forward_as_tuple(std::forward<Args>(args)...));
 }
@@ -60,7 +60,7 @@ auto take_first(Args&&... args) {
 /// @param ...args The pack arguments
 /// @return A tuple containing N elements starting from the Start-th element
 template <std::size_t Start, std::size_t N, typename... Args>
-auto take(Args&&... args) {
+[[nodiscard]] auto take(Args&&... args) {
   return details::take(make_index_sequence<Start, N>(),
                        std::forward_as_tuple(std::forward<Args>(args)...));
 }
@@ -71,7 +71,7 @@ auto take(Args&&... args) {
 /// @param ...args The pack arguments
 /// @return A tuple containing the last N elements of the input pack
 template <std::size_t N, typename... Args>
-auto take_last(Args&&... args) {
+[[nodiscard]] auto take_last(Args&&... args) {
   return details::take(make_index_sequence<sizeof...(args) - N, N>(),
                        std::forward_as_tuple(std::forward<Args>(args)...));
 }
@@ -84,7 +84,7 @@ auto take_last(Args&&... args) {
 /// @return A tuple containg references to N elements from the input, starting
 /// with the Start-th element
 template <std::size_t Start, std::size_t N, typename... Args>
-auto tie(Args&&... args) {
+[[nodiscard]] auto tie(Args&&... args) {
   return details::tie(make_index_sequence<Start, N>(),
                       std::forward_as_tuple(std::forward<Args>(args)...));
 }
@@ -97,7 +97,26 @@ auto tie(Args&&... args) {
 /// @return A tuple containing the result of applying the transform function to
 /// each input argument
 template <typename Func, typename... Args>
-auto transform_each(Func f, Args&&... args) {
+[[nodiscard]] auto transform_each(Func f, Args&&... args) {
   return std::make_tuple(f(std::forward<Args>(args))...);
 }
+
+template <typename Type, typename... Args>
+struct index_of {
+ private:
+  constexpr static std::size_t get_ind() {
+    static_assert((std::is_same_v<Type, Args> + ...) == 1,
+                  "Type is not unique in pack");
+    std::size_t i = 0;
+    ((i++, std::is_same_v<Type, Args>) || ...);
+    return i - 1;
+  };
+
+ public:
+  constexpr static std::size_t value = get_ind();
+};
+
+template <typename Type, typename... Args>
+constexpr auto index_of_v = index_of<Type, Args...>::value;
+
 }  // namespace misc
