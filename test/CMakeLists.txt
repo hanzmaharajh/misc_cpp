@@ -1,10 +1,11 @@
-find_package(GTest REQUIRED)
-
+find_package(GTest CONFIG REQUIRED)
+ 
 add_executable(tests
     algorithm_tests.cpp
     allocated_arrays_tests.cpp
     minmax_heap_tests.cpp
     pack_manipulation_tests.cpp
+    size_aware_cache_test.cpp
 )
 
 
