@@ -45,6 +45,12 @@ jobs:
             c_compiler: cl
 
     steps:
+    - name: Set up C/C++ tools
+      uses: actions/setup-cpp@v2
+      with:
+        cpp-version: 17
+        boost-version: 1.72
+    
     - name: install GoogleTest
       if: ${{steps.cache.output.cache-hit != 'true'}}
       run: |
