@@ -56,7 +56,7 @@ jobs:
       uses: egor-tensin/build-boost@v1
       with:
         version: 1.74.0
-        libraries: container algorithm
+        libraries: 
         platform: x64
         configuration: Release
     
