@@ -45,11 +45,20 @@ jobs:
             c_compiler: cl
 
     steps:
-    - name: Set up C/C++ tools
-      uses: actions/setup-cpp@v2
+    - name: Cache Boost
+      uses: actions/cache@v2
       with:
-        cpp-version: 17
-        boost-version: 1.72
+        path: '${{ runner.workspace }}/boost_*.tar.gz'
+        key: 'boost-1.74.0'
+        
+    - name: Build Boost
+      id: boost
+      uses: egor-tensin/build-boost@v1
+      with:
+        version: 1.74.0
+        libraries: container algorithm
+        platform: x64
+        configuration: Release
     
     - name: install GoogleTest
       if: ${{steps.cache.output.cache-hit != 'true'}}
