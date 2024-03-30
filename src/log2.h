@@ -11,7 +11,7 @@ namespace misc {
 #endif
 
 template <typename T>
-static inline int log2(T i) {
+[[nodiscard]] static inline int log2(T i) {
   assert(i > 0);
 #if __cplusplus >= 202002L
   return std::bit_width(i) - 1;
