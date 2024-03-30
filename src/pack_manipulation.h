@@ -25,6 +25,12 @@ auto take(std::index_sequence<Inds...>, std::tuple<Args...>&& args) {
   return std::make_tuple(forward_element<Inds>(std::move(args))...);
 }
 
+template <typename... Args, std::size_t... Inds>
+auto repeat(std::index_sequence<Inds...>, const std::tuple<Args...>& args) {
+  return std::tuple_cat(
+      ((void)Inds, args)...);
+}
+
 template <typename ArgsTup, std::size_t... Inds>
 auto tie(std::index_sequence<Inds...>, ArgsTup&& args) {
   return std::forward_as_tuple(
@@ -87,6 +93,12 @@ template <std::size_t Start, std::size_t N, typename... Args>
 [[nodiscard]] auto tie(Args&&... args) {
   return details::tie(make_index_sequence<Start, N>(),
                       std::forward_as_tuple(std::forward<Args>(args)...));
+}
+
+template <std::size_t N, typename... Args>
+[[nodiscard]] auto repeat(Args&&... args) {
+  return details::repeat(std::make_index_sequence<N>(),
+                         std::forward_as_tuple(args...));
 }
 
 /// @brief Transforms each element of the input
