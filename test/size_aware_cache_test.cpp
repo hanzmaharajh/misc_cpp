@@ -3,7 +3,10 @@
 
 #include <chrono>
 #include <cmath>
+#include <iterator>
 #include <numeric>
+#include <vector>
+#include <memory>
 
 using namespace std::chrono_literals;
 

@@ -56,16 +56,16 @@ class LRUCache {
     map_iterator_type map_it;
 
    protected:
-    BaseElement(Value value, cache_size_type size,
-                typename BaseElement::map_iterator_type map_it)
-        : value(std::move(value)), size(size), map_it(map_it) {}
+    BaseElement(Value v, cache_size_type s,
+                typename BaseElement::map_iterator_type it)
+        : value(std::move(v)), size(s), map_it(it) {}
   };
 
   struct LRUStrategy {
     struct Element : public BaseElement {
-      Element(Value value, cache_size_type size,
-              typename BaseElement::map_iterator_type map_it)
-          : BaseElement(std::move(value), size, map_it) {}
+      Element(Value v, cache_size_type s,
+              typename BaseElement::map_iterator_type it)
+          : BaseElement(std::move(v), s, it) {}
       void touch() {
         // Do nothing
       }
@@ -81,9 +81,9 @@ class LRUCache {
     struct Element : public BaseElement {
       typename ClockType::time_point last_access_time;
 
-      Element(Value value, cache_size_type size,
-              typename BaseElement::map_iterator_type map_it)
-          : BaseElement(std::move(value), size, map_it) {
+      Element(Value v, cache_size_type s,
+              typename BaseElement::map_iterator_type it)
+          : BaseElement(std::move(v), s, it) {
         touch();
       }
       void touch() { last_access_time = ClockType::now(); }
@@ -108,9 +108,9 @@ class LRUCache {
       typename ClockType::time_point last_access_time;
       size_t hits = 0;
 
-      Element(Value value, cache_size_type size,
-              typename BaseElement::map_iterator_type map_it)
-          : BaseElement(std::move(value), size, map_it) {
+      Element(Value v, cache_size_type s,
+              typename BaseElement::map_iterator_type it)
+          : BaseElement(std::move(v), s, it) {
         touch();
       }
 
