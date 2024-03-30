@@ -87,6 +87,8 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -D "BOOST_ROOT=${{ steps.boost.outputs.root }}"
+        -D "BOOST_LIBRARYDIR=${{ steps.boost.outputs.librarydir }}"
         -S ${{ github.workspace }}
 
     - name: Build
