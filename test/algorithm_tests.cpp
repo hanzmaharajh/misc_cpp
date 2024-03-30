@@ -8,6 +8,8 @@
 #include <iterator>
 #include <vector>
 
+#include "test.h"
+
 TEST(sort, sort) {
   ::testing::MockFunction<int(int)> inverse;
   ON_CALL(inverse, Call).WillByDefault([](const auto& val) { return -val; });
@@ -69,4 +71,18 @@ TEST(transform_if, transform_if) {
 
   EXPECT_EQ(end, in.end());
   EXPECT_EQ(out, (std::vector{10, 12, 14, 16, 18}));
+}
+
+TEST(permutations_without_replacement, permutations_without_replacement) {
+  const std::vector<int> v{1, 2, 3, 4, 5};
+  struct Visitor : misc::CopyRecorder {
+    std::vector<std::array<int, 3>> acc;
+    void operator()(int a, int b, int c) { acc.push_back(std::array{a, b, c}); }
+  } in_func;
+
+  const auto out_func = misc::visit_permutations_without_replacement<3>(
+      v.begin(), v.end(), std::move(in_func));
+
+  EXPECT_EQ(out_func.acc.size(), 60);
+  EXPECT_EQ(out_func.copy_constructed, 0);
 }
