@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <minmax_heap.h>
+#include <algorithm>
 
 
 using namespace misc;
@@ -154,7 +155,7 @@ struct CopyCounter {
     copies = c.copies + 1;
     return *this;
   }
-  CopyCounter& operator=(CopyCounter&& c) {
+  CopyCounter& operator=(CopyCounter&& c) noexcept {
     value = c.value;
     moves = c.moves + 1;
     return *this;
