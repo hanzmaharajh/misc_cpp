@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    # develop:
+    #   watch:
+    #     - path: ../build/test/tests
+    #       action: sync+restart
+    #       target: /usr/local/bin/experiment_tests
+    environment:
+      # Set an env var to use later in the code
+      AWS_ENDPOINT: http://localstack:4566
+    volumes:
+     - ../build/test:/experiment
+    command: ["/bin/bash", "-c", 
+      "while inotifywait -e close_write,moved_to,create /experiment; do /experiment/tests --gtest_brief=1; done"
+      ]
+
+  localstack: # LocalStack container
+    image: localstack/localstack:latest
+    ports:
+      # Map the port so you can access the API from the host machine
+      - 4566:4566
+    volumes:
+      # Here you mount your setup file so it will be executed
+      # when the container starts
+      - ./localstack-setup.sh:/etc/localstack/init/ready.d/script.sh
+  redis:
+    image: redis:7.2.4
+    ports:
+      - 6379:6379

@@ -5,11 +5,6 @@
 namespace misc {
 namespace details {
 
-template <std::size_t N, typename ArgsTup>
-decltype(auto) forward_element(ArgsTup&& args) {
-  return std::forward<std::tuple_element_t<N, ArgsTup>>(std::get<N>(args));
-}
-
 template <std::size_t Start, std::size_t... Inds>
 auto make_index_sequence(std::index_sequence<Inds...>) {
   return std::integer_sequence<std::size_t, (Start + Inds)...>{};
@@ -22,7 +17,7 @@ auto make_index_sequence() {
 
 template <typename... Args, std::size_t... Inds>
 auto take(std::index_sequence<Inds...>, std::tuple<Args...>&& args) {
-  return std::make_tuple(forward_element<Inds>(std::move(args))...);
+  return std::make_tuple(std::get<Inds>(std::move(args))...);
 }
 
 template <typename... Args, std::size_t... Inds>
@@ -31,9 +26,8 @@ auto repeat(std::index_sequence<Inds...>, const std::tuple<Args...>& args) {
 }
 
 template <typename ArgsTup, std::size_t... Inds>
-auto tie(std::index_sequence<Inds...>, ArgsTup&& args) {
-  return std::forward_as_tuple(
-      forward_element<Inds>(std::forward<ArgsTup>(args))...);
+decltype(auto) tie(std::index_sequence<Inds...>, ArgsTup&& args) {
+  return std::forward_as_tuple(std::get<Inds>(std::forward<ArgsTup>(args))...);
 }
 
 }  // namespace details
