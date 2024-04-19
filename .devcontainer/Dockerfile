@@ -13,7 +13,8 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 RUN apt update && export DEBIAN_FRONTEND=noninteractive \
     && apt -y install --no-install-recommends \
        libboost-all-dev \
-       clang-format
+       clang-format \
+       ccache
 
 RUN git clone https://github.com/google/googletest.git -b v1.14.0 \
     && cd googletest \

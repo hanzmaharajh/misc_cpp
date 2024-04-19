@@ -9,7 +9,7 @@ struct CopyRecorder {
         copy_assigned{o.copy_assigned},
         move_assigned{o.move_assigned} {}
 
-  CopyRecorder(CopyRecorder&& o)
+  CopyRecorder(CopyRecorder&& o) noexcept
       : copy_constructed{o.copy_constructed},
         move_constructed{o.move_constructed + 1},
         copy_assigned{o.copy_assigned},
@@ -23,7 +23,7 @@ struct CopyRecorder {
     return *this;
   }
 
-  CopyRecorder& operator=(CopyRecorder&& o) {
+  CopyRecorder& operator=(CopyRecorder&& o) noexcept {
     copy_constructed = o.copy_constructed;
     move_constructed = o.move_constructed;
     copy_assigned = o.copy_assigned;
