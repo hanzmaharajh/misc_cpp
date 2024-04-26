@@ -5,6 +5,7 @@ add_executable(tests
     allocated_arrays_tests.cpp
     minmax_heap_tests.cpp
     pack_manipulation_tests.cpp
+    size_aware_cache_test.cpp
 )
 
 
@@ -18,3 +19,4 @@ target_link_libraries(tests
         misc_lib
 )
 
+add_test(NAME unit_tests COMMAND tests)

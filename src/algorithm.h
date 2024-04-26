@@ -147,8 +147,8 @@ template <typename Iter, typename UnaryOperation>
 /// @param op The transform applied to each element that satisfies the predicate
 template <typename Iter, typename OIter, typename Predicate,
           typename UnaryOperation>
-[[nodiscard]] Iter transform_if(Iter first, Iter last, OIter out,
-                                Predicate pred, UnaryOperation op) {
+[[nodiscard]] OIter transform_if(Iter first, Iter last, OIter out,
+                                 Predicate pred, UnaryOperation op) {
   while (first != last) {
     const auto& v = *first;
     if (pred(v)) {
@@ -156,7 +156,7 @@ template <typename Iter, typename OIter, typename Predicate,
     }
     ++first;
   }
-  return first;
+  return out;
 }
 
 template <typename Func, typename Iter, typename... IterPack>

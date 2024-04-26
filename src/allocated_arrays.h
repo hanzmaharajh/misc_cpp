@@ -173,7 +173,7 @@ class unique_arrays : public allocated_arrays_storage<Args...> {
         else if constexpr (std::is_same_v<Init, value_init_t>)
           new (begin) el_type{};
         else
-          static_assert(always_false<Init>::value, "Missing init type");
+          static_assert(always_false_v<Init>, "Missing init type");
       }
     } catch (...) {
       std::destroy(range.begin(), begin);

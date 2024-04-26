@@ -1,6 +1,7 @@
 #include <algorithm.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <boost/range.hpp>
 
 #include <algorithm>
 #include <array>
@@ -63,14 +64,14 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST(transform_if, transform_if) {
   const std::vector in{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  std::vector<int> out;
-  const auto end = misc::transform_if(
-      in.begin(), in.end(), std::back_inserter(out),
+  std::array<int, 100> out;
+  const auto out_it = misc::transform_if(
+      in.begin(), in.end(), out.begin(),
       [](const int& i) { return i % 2 == 0; },
       [](const int& i) { return i + 10; });
 
-  EXPECT_EQ(end, in.end());
-  EXPECT_EQ(out, (std::vector{10, 12, 14, 16, 18}));
+  EXPECT_EQ(out_it, std::next(out.begin(), 5));
+  EXPECT_THAT(boost::make_iterator_range(out.begin(), std::next(out.begin(), 5)) , testing::ElementsAre(10, 12, 14, 16, 18));
 }
 
 TEST(permutations_without_replacement, permutations_without_replacement) {
