@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 #include <log2.h>
+#include <algorithm>
+#include <cmath>
+#include <array>
 
 TEST(IntegerLog2, Singles) {
   // This test isn't parameterized because parameterization of 1,000,000 tests
-  // takes too long
+  // takes too long  
   for (uint64_t i = 1; i < 1'000'000; ++i) {
     EXPECT_EQ(misc::log2(i), static_cast<uint64_t>(std::log2(i)));
   }

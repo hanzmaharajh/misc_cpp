@@ -5,6 +5,7 @@ add_executable(tests
     allocated_arrays_tests.cpp
     minmax_heap_tests.cpp
     pack_manipulation_tests.cpp
+    semaphore_tests.cpp
     size_aware_cache_test.cpp
 )
 

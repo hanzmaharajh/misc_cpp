@@ -4,6 +4,7 @@
 #include <boost/algorithm/apply_permutation.hpp>
 #include <boost/scope_exit.hpp>
 #include <numeric>
+#include <memory>
 
 #include "allocated_arrays.h"
 
