@@ -16,10 +16,10 @@ class arr_range {
   T* m_end;
 
  public:
-  arr_range(T* start, T* end) : m_start(start), m_end(end) {}
-  T* begin() const { return m_start; }
-  T* end() const { return m_end; }
-  auto size() const { return m_end - m_start; }
+  arr_range(T* start, T* end) noexcept : m_start(start), m_end(end) {}
+  [[nodiscard]] T* begin() const { return m_start; }
+  [[nodiscard]] T* end() const { return m_end; }
+  [[nodiscard]] auto size() const { return m_end - m_start; }
   [[nodiscard]] const T& operator[](size_t ind) const { return m_start[ind]; }
   [[nodiscard]] T& operator[](size_t ind) { return m_start[ind]; }
 };
@@ -173,7 +173,7 @@ class unique_arrays : public allocated_arrays_storage<Args...> {
         else if constexpr (std::is_same_v<Init, value_init_t>)
           new (begin) el_type{};
         else
-          static_assert(always_false<Init>::value, "Missing init type");
+          static_assert(always_false_v<Init>, "Missing init type");
       }
     } catch (...) {
       std::destroy(range.begin(), begin);
