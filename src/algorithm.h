@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <boost/algorithm/apply_permutation.hpp>
 #include <boost/scope_exit.hpp>
-#include <numeric>
 #include <memory>
+#include <numeric>
 
 #include "allocated_arrays.h"
 
@@ -171,7 +171,7 @@ Func visit_range_permutations(Func func, Iter range_begin, Iter range_end,
                                other_ranges...);
     }
   }
-  return std::move(func);
+  return func;
 }
 
 template <size_t Choose, typename Iter, typename Func>
