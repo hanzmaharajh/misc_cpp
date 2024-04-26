@@ -1,5 +1,5 @@
 find_package(GTest CONFIG REQUIRED)
- 
+
 add_executable(tests
     algorithm_tests.cpp
     allocated_arrays_tests.cpp

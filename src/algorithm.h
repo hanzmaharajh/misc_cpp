@@ -159,4 +159,55 @@ template <typename Iter, typename OIter, typename Predicate,
   return out;
 }
 
+template <typename Func, typename Iter, typename... IterPack>
+Func visit_range_permutations(Func func, Iter range_begin, Iter range_end,
+                              IterPack... other_ranges) {
+  for (; range_begin != range_end; ++range_begin) {
+    if constexpr (sizeof...(other_ranges) == 0) {
+      func(*range_begin);
+    } else {
+      visit_range_permutations([&](auto... i) { func(*range_begin, i...); },
+                               other_ranges...);
+    }
+  }
+  return std::move(func);
+}
+
+template <size_t Choose, typename Iter, typename Func>
+Func visit_permutations_with_replacement(Iter begin, Iter end, Func f) {
+  assert(std::distance(begin, end) >= Choose);
+
+  if constexpr (Choose == 0) {
+    return std::move(f);
+  } else {
+    return std::apply(
+        [&](auto&... args) {
+          return visit_range_permutations(std::move(f), args...);
+        },
+        repeat<Choose>(begin, end));
+  }
+}
+
+namespace details {
+template <size_t... Inds, typename Iter, typename Func>
+Func permutations_without_replacement(std::index_sequence<Inds...>, Iter begin,
+                                      Iter end, Func f) {
+  return std::apply(
+      [&](const auto&... args) {
+        return visit_range_permutations(std::move(f), args...);
+      },
+      std::tuple_cat(std::make_tuple(std::next(begin, Inds), end)...));
+}
+}  // namespace details
+
+template <size_t Choose, typename Iter, typename Func>
+Func visit_permutations_without_replacement(Iter begin, Iter end, Func f) {
+  if constexpr (Choose == 0) {
+    return std::move(f);
+  } else {
+    return details::permutations_without_replacement(
+        std::make_index_sequence<Choose>(), begin, end, std::move(f));
+  }
+}
+
 }  // namespace misc
