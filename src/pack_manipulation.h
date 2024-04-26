@@ -28,7 +28,8 @@ auto take(std::index_sequence<Inds...>, std::tuple<Args...>&& args) {
 
 template <typename... Args, std::size_t... Inds>
 auto repeat(std::index_sequence<Inds...>, const std::tuple<Args...>& args) {
-  return std::tuple_cat(((void)Inds, args)...);
+  return std::tuple_cat(
+      ((void)Inds, args)...);
 }
 
 template <typename ArgsTup, std::size_t... Inds>
@@ -98,7 +99,7 @@ template <std::size_t Start, std::size_t N, typename... Args>
 template <std::size_t N, typename... Args>
 [[nodiscard]] auto repeat(Args&&... args) {
   return details::repeat(std::make_index_sequence<N>(),
-                         std::make_tuple(std::forward<Args>(args)...));
+                         std::forward_as_tuple(args...));
 }
 
 /// @brief Transforms each element of the input

@@ -49,16 +49,16 @@ class LRUCache {
   // Each caching strategy's elements will derive from this.
   struct BaseElement {
     Value value;
-    cache_size_type size;
+    cache_size_type m_size;
 
     using map_iterator_type =
         typename std::map<Key, ElementLocator, Compare>::iterator;
-    map_iterator_type map_it;
+    map_iterator_type m_map_it;
 
    protected:
     BaseElement(Value value, cache_size_type size,
                 typename BaseElement::map_iterator_type map_it)
-        : value(std::move(value)), size(size), map_it(map_it) {}
+        : value(std::move(value)), m_size(size), m_map_it(map_it) {}
   };
 
   struct LRUStrategy {
