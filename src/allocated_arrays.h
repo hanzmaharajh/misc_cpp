@@ -16,10 +16,10 @@ class arr_range {
   T* m_end;
 
  public:
-  arr_range(T* start, T* end) : m_start(start), m_end(end) {}
-  T* begin() const { return m_start; }
-  T* end() const { return m_end; }
-  auto size() const { return m_end - m_start; }
+  arr_range(T* start, T* end) noexcept : m_start(start), m_end(end) {}
+  [[nodiscard]] T* begin() const { return m_start; }
+  [[nodiscard]] T* end() const { return m_end; }
+  [[nodiscard]] auto size() const { return m_end - m_start; }
   [[nodiscard]] const T& operator[](size_t ind) const { return m_start[ind]; }
   [[nodiscard]] T& operator[](size_t ind) { return m_start[ind]; }
 };

@@ -1,6 +1,5 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-
 #include <pack_manipulation.h>
 
 TEST(pack, transform_each) {
@@ -98,4 +97,9 @@ TEST(pack, make_index_sequence) {
   EXPECT_EQ(b, 4);
   EXPECT_EQ(c, 5);
   EXPECT_EQ(d, 6);
+}
+
+TEST(pack, repeat) {
+  [[maybe_unused]] const auto tup = misc::repeat<3>(1, 2, 3);
+  EXPECT_EQ(tup, std::make_tuple(1, 2, 3, 1, 2, 3, 1, 2, 3));
 }
