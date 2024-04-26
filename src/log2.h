@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 namespace misc {
 #if __cplusplus >= 202002L
 #include <bit>
