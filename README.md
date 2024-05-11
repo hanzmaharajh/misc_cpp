@@ -1,8 +1,10 @@
 # Misc
 
-A few C++ functions and classes that I have written, and may be useful elsewhere. This code has not been fully tested. I am happy to receive any feedback/advice/enhancements/etc.
-=======
-A few C++ functions and classes that I have written, and may be useful elsewhere.
+
+### A few C++ functions and classes that I have written, and may be useful elsewhere. 
+#### (Much of this code has found minimal use and has not been fully tested. I am happy to receive any feedback / advice / enhancements / etc.)
+
+
 
 - some `<algorithm>` equivalents for expensive comparisons
 - classes to allocate space for multiple arrays in a single allocation
