@@ -5,9 +5,8 @@
 #include <boost/scope_exit.hpp>
 #include <memory>
 #include <numeric>
-#include <memory>
 
-#include "allocated_arrays.h"
+#include "allocated_storages.h"
 
 namespace misc {
 
@@ -18,14 +17,14 @@ namespace misc {
 /// @param op The transform applied to each element in the range
 /// @param comp The comparison function
 template <typename Iter, typename UnaryOperation, typename Compare>
-void transform_sort(Iter begin, Iter end, UnaryOperation op, Compare comp) {
+void transform_sort(Iter begin, Iter end, UnaryOperation&& op, Compare&& comp) {
   using Diff = typename std::iterator_traits<Iter>::difference_type;
   using T = typename std::iterator_traits<Iter>::value_type;
   using Key = decltype(op(std::declval<T>()));
 
   const Diff length = std::distance(begin, end);
 
-  allocated_arrays_storage<Key, Diff> arrs(length, length);
+  allocated_storages<Key, Diff> arrs(length, length);
 
   const auto& [keys_range, indices_range] = arrs;
 
@@ -55,8 +54,8 @@ void transform_sort(Iter begin, Iter end, UnaryOperation op, Compare comp) {
 /// @param end End iterator
 /// @param op The transform applied to each element in the range
 template <typename Iter, typename UnaryOperation>
-void transform_sort(Iter first, Iter last, UnaryOperation op) {
-  transform_sort(first, last, op, std::less<>{});
+void transform_sort(Iter first, Iter last, UnaryOperation&& op) {
+  transform_sort(first, last, std::forward<UnaryOperation>(op), std::less<>{});
 }
 
 /// @brief Finds the min element in the input range by comparing the range's
@@ -68,7 +67,7 @@ void transform_sort(Iter first, Iter last, UnaryOperation op) {
 /// @param comp The comparison function
 template <typename Iter, typename UnaryOperation, typename Compare>
 [[nodiscard]] Iter transform_min_element(Iter first, Iter last,
-                                         UnaryOperation op, Compare comp) {
+                                         UnaryOperation&& op, Compare&& comp) {
   if (first == last) return last;
 
   auto min_val = op(*first);
@@ -91,8 +90,9 @@ template <typename Iter, typename UnaryOperation, typename Compare>
 /// @param op The transform applied to each element in the range
 template <typename Iter, typename UnaryOperation>
 [[nodiscard]] Iter transform_min_element(Iter first, Iter last,
-                                         UnaryOperation op) {
-  return transform_min_element(first, last, op, std::less<>{});
+                                         UnaryOperation&& op) {
+  return transform_min_element(first, last, std::forward<UnaryOperation>(op),
+                               std::less<>{});
 }
 
 /// @brief Finds the min and max elements in the input range by comparing the
@@ -103,10 +103,8 @@ template <typename Iter, typename UnaryOperation>
 /// @param op The transform applied to each element in the range
 /// @param comp The comparison function
 template <typename Iter, typename UnaryOperation, typename Compare>
-[[nodiscard]] std::pair<Iter, Iter> transform_minmax_element(Iter first,
-                                                             Iter last,
-                                                             UnaryOperation op,
-                                                             Compare comp) {
+[[nodiscard]] std::pair<Iter, Iter> transform_minmax_element(
+    Iter first, Iter last, UnaryOperation&& op, Compare&& comp) {
   if (first == last) return std::pair{last, last};
 
   auto min_val = op(*first);
@@ -137,8 +135,9 @@ template <typename Iter, typename UnaryOperation, typename Compare>
 /// @param op The transform applied to each element in the range
 template <typename Iter, typename UnaryOperation>
 [[nodiscard]] std::pair<Iter, Iter> transform_minmax_element(
-    Iter first, Iter last, UnaryOperation op) {
-  return transform_minmax_element(first, last, op, std::less<>{});
+    Iter first, Iter last, UnaryOperation&& op) {
+  return transform_minmax_element(first, last, std::forward<UnaryOperation>(op),
+                                  std::less<>{});
 }
 
 /// @brief Transforms elements if they satisfy some predicate
@@ -150,7 +149,7 @@ template <typename Iter, typename UnaryOperation>
 template <typename Iter, typename OIter, typename Predicate,
           typename UnaryOperation>
 [[nodiscard]] OIter transform_if(Iter first, Iter last, OIter out,
-                                 Predicate pred, UnaryOperation op) {
+                                 Predicate&& pred, UnaryOperation&& op) {
   while (first != last) {
     const auto& v = *first;
     if (pred(v)) {
@@ -210,6 +209,39 @@ Func visit_permutations_without_replacement(Iter begin, Iter end, Func f) {
     return details::permutations_without_replacement(
         std::make_index_sequence<Choose>(), begin, end, std::move(f));
   }
+}
+
+template <typename Iter, typename UnaryOperation, typename Compare>
+void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
+                         Compare&& comp) {
+  using Diff = typename std::iterator_traits<Iter>::difference_type;
+  using T = typename std::iterator_traits<Iter>::value_type;
+  using Key = decltype(op(std::declval<T>()));
+
+  const Diff length = std::distance(begin, end);
+
+  allocated_storages<Key, Diff> arrs(length, length);
+
+  const auto& [keys_range, indices_range] = arrs;
+
+  auto end_key_created = keys_range.begin();
+  BOOST_SCOPE_EXIT_ALL(&, keys = keys_range) {
+    std::destroy(keys.begin(), end_key_created);
+  };
+
+  std::for_each(begin, end,
+                [&](const auto& v) { new (end_key_created++) Key{op(v)}; });
+
+  std::iota(indices_range.begin(), indices_range.end(), Diff{});
+  std::sort(indices_range.begin(), indices_range.end(),
+            [&, keys = keys_range](Diff a, Diff b) {
+              return comp(keys[static_cast<size_t>(a)],
+                          keys[static_cast<size_t>(b)]);
+            });
+  boost::algorithm::apply_permutation(begin, end, indices_range.begin(),
+                                      indices_range.end());
+
+  std::destroy(indices_range.begin(), indices_range.end());
 }
 
 }  // namespace misc
