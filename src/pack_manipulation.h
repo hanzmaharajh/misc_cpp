@@ -109,7 +109,7 @@ template <std::size_t N, typename... Args>
 /// @return A tuple containing the result of applying the transform function to
 /// each input argument
 template <typename Func, typename... Args>
-[[nodiscard]] auto transform_each(Func f, Args&&... args) {
+[[nodiscard]] auto transform_each(Func&& f, Args&&... args) {
   return std::make_tuple(f(std::forward<Args>(args))...);
 }
 
