@@ -1,10 +1,9 @@
 #pragma once
 #include <algorithm>
+#include <cstddef>
 #include <memory>
-#include <new>
 #include <type_traits>
 #include <utility>
-#include <cstddef>
 
 #include "always_false.h"
 #include "pack_manipulation.h"
@@ -20,7 +19,9 @@ class arr_range {
   arr_range(T* start, T* end) noexcept : m_start(start), m_end(end) {}
   [[nodiscard]] T* begin() const { return m_start; }
   [[nodiscard]] T* end() const { return m_end; }
-  [[nodiscard]] auto size() const { return m_end - m_start; }
+  [[nodiscard]] size_t size() const {
+    return static_cast<size_t>(m_end - m_start);
+  }
   [[nodiscard]] const T& operator[](size_t ind) const { return m_start[ind]; }
   [[nodiscard]] T& operator[](size_t ind) { return m_start[ind]; }
 };
@@ -30,41 +31,40 @@ class arr_range {
 /// @tparam ...Args The type of each array
 /// @note Only space is allocated, objects are not created
 template <typename... Args>
-class allocated_arrays_storage {
+class allocated_storages {
  public:
   template <size_t N>
   using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
 
-  explicit allocated_arrays_storage(std::initializer_list<Args>... lists) {
+  explicit allocated_storages(std::initializer_list<Args>... lists) {
     populate_spans(std::make_index_sequence<sizeof...(Args)>(),
                    lists.size()...);
 
-    allocate_arr();
+    allocate_storage();
   }
 
   template <typename... Size>
-  explicit allocated_arrays_storage(Size... sizes) {
+  explicit allocated_storages(Size... sizes) {
     static_assert(sizeof...(Size) == sizeof...(Args));
 
     populate_spans(std::make_index_sequence<sizeof...(Args)>(), sizes...);
 
-    allocate_arr();
+    allocate_storage();
   }
 
-  allocated_arrays_storage(const allocated_arrays_storage&) = default;
-  allocated_arrays_storage(allocated_arrays_storage&&) = default;
+  allocated_storages(const allocated_storages&) = default;
+  allocated_storages(allocated_storages&&) = default;
 
-  allocated_arrays_storage& operator=(const allocated_arrays_storage&) =
-      default;
-  allocated_arrays_storage& operator=(allocated_arrays_storage&&) = default;
+  allocated_storages& operator=(const allocated_storages&) = default;
+  allocated_storages& operator=(allocated_storages&&) = default;
 
   /// @brief Returns the array allocated for the type indexed by Ind
   /// @tparam Ind The index
   /// @return the array
   template <size_t Ind>
   [[nodiscard]] auto get() const {
-    const auto [offset, len] = m_spans[Ind];
-    auto* start = reinterpret_cast<nth_type<Ind>*>(m_arr.get() + offset);
+    const auto [offset, len] = get_span<Ind>();
+    auto* start = reinterpret_cast<nth_type<Ind>*>(m_memory.get() + offset);
     return arr_range(start, start + len);
   }
 
@@ -77,8 +77,13 @@ class allocated_arrays_storage {
   }
 
  protected:
-  std::unique_ptr<std::byte[]> m_arr;
-  std::array<std::pair<size_t, size_t>, sizeof...(Args)> m_spans;
+  struct freeing_deleter {
+    void operator()(void* ptr) const { std::free(ptr); }
+  };
+  std::unique_ptr<std::byte, freeing_deleter> m_memory;
+
+  size_t m_first_span_len;
+  std::array<std::pair<size_t, size_t>, sizeof...(Args)> m_other_spans;
 
   template <typename... Size, size_t... Ind>
   void populate_spans(std::index_sequence<Ind...>, Size... sizes) {
@@ -88,27 +93,40 @@ class allocated_arrays_storage {
   template <size_t Ind>
   void populate_span(size_t size) {
     if constexpr (Ind == 0) {
-      m_spans[Ind] = {0, size};
+      m_first_span_len = size;
     } else {
-      using prev_type = nth_type<Ind - 1>;
       using curr_type = nth_type<Ind>;
-      const auto& prev_span = m_spans[Ind - 1];
+      using prev_type = nth_type<Ind - 1>;
+      const auto& prev_span = get_span<Ind - 1>();
       const auto prev_end =
           prev_span.first + sizeof(prev_type) * prev_span.second;
-      auto align_padding = prev_end % alignof(curr_type);
+      auto align_padding = prev_end % alignof(curr_type[]);
       if (align_padding != 0)
-        align_padding = alignof(curr_type) - align_padding;
-      m_spans[Ind] = {prev_end + align_padding, size};
+        align_padding = alignof(curr_type[]) - align_padding;
+      m_other_spans[Ind - 1] = {prev_end + align_padding, size};
     }
   }
 
-  void allocate_arr() {
-    const auto last_ind = sizeof...(Args) - 1;
-    const auto [last_offset, last_arr_len] = m_spans[last_ind];
+  template <size_t Ind>
+  std::pair<size_t, size_t> get_span() const {
+    if constexpr (Ind == 0) {
+      return {0, m_first_span_len};
+    }
+    return m_other_spans[Ind - 1];
+  }
+
+  void allocate_storage() {
+    constexpr auto last_ind = sizeof...(Args) - 1;
+    const auto [last_offset, last_arr_len] = get_span<last_ind>();
     const auto total_size =
         last_offset + sizeof(nth_type<last_ind>) * last_arr_len;
 
-    m_arr.reset(new std::byte[total_size]);
+    constexpr const auto arr_alignment = alignof(nth_type<0>[]);
+    auto round_up = total_size % arr_alignment;
+    if (round_up > 0) round_up = arr_alignment - round_up;
+
+    m_memory.reset(reinterpret_cast<std::byte*>(
+        std::aligned_alloc(arr_alignment, total_size + round_up)));
   }
 };
 
@@ -116,8 +134,8 @@ class allocated_arrays_storage {
 /// allocation.
 /// @tparam ...Args The type of each array
 template <typename... Args>
-class unique_arrays : public allocated_arrays_storage<Args...> {
-  using Base = allocated_arrays_storage<Args...>;
+class unique_arrays : public allocated_storages<Args...> {
+  using Base = allocated_storages<Args...>;
 
  public:
   explicit unique_arrays(std::initializer_list<Args>... lists)
@@ -150,7 +168,8 @@ class unique_arrays : public allocated_arrays_storage<Args...> {
   unique_arrays& operator=(const unique_arrays&) = delete;
   unique_arrays& operator=(unique_arrays&& o) noexcept {
     Base::operator=(std::move(o));
-    o.m_spans.fill({0, 0});
+    o.m_first_span_len = 0;
+    o.m_other_spans.fill({0, 0});
     return *this;
   };
 
@@ -221,11 +240,11 @@ class unique_arrays : public allocated_arrays_storage<Args...> {
 
 namespace std {
 template <typename... Args>
-struct tuple_size<misc::allocated_arrays_storage<Args...>>
+struct tuple_size<misc::allocated_storages<Args...>>
     : std::integral_constant<size_t, sizeof...(Args)> {};
 
 template <std::size_t I, typename... Args>
-struct tuple_element<I, misc::allocated_arrays_storage<Args...>> {
+struct tuple_element<I, misc::allocated_storages<Args...>> {
   using type = misc::arr_range<std::tuple_element_t<I, std::tuple<Args...>>>;
 };
 
