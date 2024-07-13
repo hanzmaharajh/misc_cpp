@@ -39,8 +39,8 @@ class ArrayOfOptional {
     using pointer = const T**;
     using reference = const T*;
 
-    const_iterator(size_t ind, const ArrayOfOptional& arr)
-        : ind(ind), arr(arr) {}
+    const_iterator(size_t index, const ArrayOfOptional& arro)
+        : ind(index), arr(arro) {}
 
     reference operator*() const { return arr[ind]; }
     pointer operator->() { return &arr[ind]; }
@@ -129,11 +129,11 @@ class ArrayOfOptional {
     return !(lhs == rhs);
   }
 
-  [[nodiscard]] T* const operator[](size_t pos) {
+  [[nodiscard]] T* operator[](size_t pos) {
     return is_set[pos] ? data() + pos : nullptr;
   }
 
-  [[nodiscard]] const T* const operator[](size_t pos) const {
+  [[nodiscard]] const T* operator[](size_t pos) const {
     return const_cast<ArrayOfOptional*>(this)->operator[](pos);
   }
 

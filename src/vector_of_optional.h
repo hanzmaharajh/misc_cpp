@@ -3,6 +3,7 @@
 #include <climits>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <memory>
 #include <optional>
@@ -53,12 +54,14 @@ class VectorOfOptional {
 
   void set_bit(size_t i) {
     auto bit_range = storages.template get<BITS_STORE_IND>();
-    bit_range[i / CHAR_BIT].bits |= (1 << (i & ((1 << CHAR_BIT) - 1)));
+    bit_range[i / CHAR_BIT].bits |=
+        static_cast<uint8_t>(1u << (i & ((1 << CHAR_BIT) - 1u)));
   }
 
   void reset_bit(size_t i) {
     auto bit_range = storages.template get<BITS_STORE_IND>();
-    bit_range[i >> CHAR_BIT].bits &= ~(1 << (i & ((1 << CHAR_BIT) - 1)));
+    bit_range[i >> uint8_t{CHAR_BIT}].bits &=
+        static_cast<uint8_t>(~(1u << (i & ((1 << CHAR_BIT) - 1u))));
   }
 
   void maybe_reallocate_exact(size_t s) {
@@ -118,8 +121,8 @@ class VectorOfOptional {
     using pointer = const T*;
     using reference = const T*;
 
-    const_iterator(size_t ind, const VectorOfOptional& arr)
-        : ind(ind), arr(arr) {}
+    const_iterator(size_t index, const VectorOfOptional& v)
+        : ind(index), arr(v) {}
 
     reference operator*() const { return arr[ind]; }
     pointer operator->() { return arr[ind]; }
@@ -222,11 +225,11 @@ class VectorOfOptional {
     return !(lhs == rhs);
   }
 
-  [[nodiscard]] T* const operator[](size_t pos) {
+  [[nodiscard]] T* operator[](size_t pos) {
     return is_set(pos) ? data() + pos : nullptr;
   }
 
-  [[nodiscard]] const T* const operator[](size_t pos) const {
+  [[nodiscard]] const T* operator[](size_t pos) const {
     return const_cast<VectorOfOptional*>(this)->operator[](pos);
   }
 

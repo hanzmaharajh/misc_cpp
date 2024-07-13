@@ -18,7 +18,7 @@ struct SpecMemberCountingFixture : public testing::Test {
   struct TestElement {
     size_t v;
     TestElement() : v{0} { ++call_counts.constructor_calls; }
-    TestElement(size_t v) : v{v} { ++call_counts.constructor_calls; }
+    TestElement(size_t val) : v{val} { ++call_counts.constructor_calls; }
     TestElement(const TestElement& t) : v{t.v} {
       ++call_counts.constructor_calls;
       ++call_counts.copy_constructor_calls;
