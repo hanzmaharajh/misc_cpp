@@ -120,7 +120,7 @@ struct index_of {
     static_assert((std::is_same_v<Type, Args> + ...) == 1,
                   "Type is not unique in pack");
     std::size_t i = 0;
-    ((i++, std::is_same_v<Type, Args>) || ...);
+    std::ignore = ((i++, std::is_same_v<Type, Args>) || ...);
     return i - 1;
   };
 

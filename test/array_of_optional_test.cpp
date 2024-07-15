@@ -40,7 +40,7 @@ struct SpecMemberCountingFixture : public testing::Test {
       return l.v == r.v;
     }
     friend bool operator!=(const TestElement& l, const TestElement& r) {
-      return l.v != r.v;
+      return !(l == r);
     }
   };
 
