@@ -116,7 +116,7 @@ class ArrayOfOptional {
     }
     for (size_t i = 0; i < lhs.size(); ++i) {
       if (const auto l_ptr = lhs[i]) {
-        if (const auto r_ptr = rhs[i]; lhs.is_set[i] && *l_ptr != *r_ptr) {
+        if (const auto r_ptr = rhs[i]; *l_ptr != *r_ptr) {
           return false;
         }
       }
