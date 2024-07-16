@@ -1,4 +1,3 @@
-#include <dense_index_map.h>
 #include <gtest/gtest.h>
 #include <vector_of_optional.h>
 
@@ -159,25 +158,4 @@ TEST_F(VectorOfOptionalSingleFixture, Move) {
   ASSERT_EQ(copy.capacity(), 1);
 
   ASSERT_EQ(ptr_10.use_count(), 2);
-}
-
-#include <string>
-TEST(DenseIndexMap, Blah) {
-  misc::dense_dynamic_index_map<size_t, std::string> m;
-  m.emplace(2, "heello");
-  m[3] = "dddd";
-  for ([[maybe_unused]] const auto& [i, s] : m) {
-  }
-  {
-    const auto it = m.find(2);
-    ASSERT_EQ(it->second, "heello");
-  }
-  {
-    const auto it = m.find(3);
-    ASSERT_EQ(it->second, "dddd");
-  }
-  {
-    const auto it = m.find(5);
-    ASSERT_EQ(it, m.end());
-  }
 }

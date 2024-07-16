@@ -16,6 +16,7 @@ class ArrayOfOptional {
   std::aligned_storage_t<sizeof(T), alignof(T[])> storage[N];
 
   T* data() { return reinterpret_cast<T*>(storage); }
+  const T* data() const { return reinterpret_cast<const T*>(storage); }
 
   template <typename Array>
   void copy_to_empty_arr(Array&& o) {
@@ -49,7 +50,7 @@ class ArrayOfOptional {
       ++ind;
       return *this;
     }
-    const_iterator operator++(int) const {
+    const_iterator operator++(int) {
       const auto retval = *this;
       ++retval;
       return retval;
@@ -58,7 +59,7 @@ class ArrayOfOptional {
       --ind;
       return *this;
     }
-    const_iterator operator--(int) const {
+    const_iterator operator--(int) {
       const auto retval = *this;
       --retval;
       return retval;
@@ -116,7 +117,7 @@ class ArrayOfOptional {
     }
     for (size_t i = 0; i < lhs.size(); ++i) {
       if (const auto l_ptr = lhs[i]) {
-        if (const auto r_ptr = rhs[i]; *l_ptr != *r_ptr) {
+        if (*l_ptr != *(rhs.data() + i)) {
           return false;
         }
       }

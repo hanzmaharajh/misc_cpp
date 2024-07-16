@@ -5,6 +5,7 @@ add_executable(tests
     allocated_storages_test.cpp
     array_of_optional_test.cpp
     comp_element_test.cpp
+    dense_index_map_test.cpp
     log2_test.cpp
     minmax_heap_test.cpp
     pack_manipulation_test.cpp
