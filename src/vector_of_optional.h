@@ -131,7 +131,7 @@ class VectorOfOptional {
       ++ind;
       return *this;
     }
-    const_iterator operator++(int) const {
+    const_iterator operator++(int) {
       auto retval = *this;
       ++retval;
       return retval;
@@ -140,7 +140,7 @@ class VectorOfOptional {
       --ind;
       return *this;
     }
-    const_iterator operator--(int) const {
+    const_iterator operator--(int) {
       auto retval = *this;
       --retval;
       return retval;

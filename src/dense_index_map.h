@@ -37,6 +37,8 @@ class dense_dynamic_index_map
     using reference = std::pair<const Key, Value>&;
     using const_reference = const std::pair<const Key, Value>&;
 
+    friend class dense_dynamic_index_map;
+
     iterator(size_t i, dense_dynamic_index_map& map) : ind(i), arr(map) {
       while (ind != arr.base_type::size() && !arr.is_set(ind)) ++ind;
     }
@@ -54,18 +56,18 @@ class dense_dynamic_index_map
         ;
       return *this;
     }
-    iterator operator++(int) const {
-      const auto retval = *this;
+    iterator operator++(int) {
+      auto retval = *this;
       ++retval;
       return retval;
     }
     iterator& operator--() {
-      while (ind != arr.base_type::size() && !arr.is_set(--ind))
+      while (ind != 0 && !arr.is_set(--ind))
         ;
       return *this;
     }
-    iterator operator--(int) const {
-      const auto retval = *this;
+    iterator operator--(int) {
+      auto retval = *this;
       --retval;
       return retval;
     }
@@ -89,6 +91,8 @@ class dense_dynamic_index_map
     using pointer = const std::pair<const Key, Value>*;
     using reference = const std::pair<const Key, Value>&;
 
+    friend class dense_dynamic_index_map;
+
     const_iterator(iterator it) : ind(it.i), arr(it.arr) {}
     const_iterator(size_t i, const dense_dynamic_index_map& map)
         : ind(i), arr(map) {
@@ -103,18 +107,18 @@ class dense_dynamic_index_map
         ;
       return *this;
     }
-    const_iterator operator++(int) const {
-      const auto retval = *this;
+    const_iterator operator++(int) {
+      auto retval = *this;
       ++retval;
       return retval;
     }
     const_iterator& operator--() {
-      while (ind != arr.base_type::size() && !arr.is_set(--ind))
+      while (ind != 0 && !arr.is_set(--ind))
         ;
       return *this;
     }
-    const_iterator operator--(int) const {
-      const auto retval = *this;
+    const_iterator operator--(int) {
+      auto retval = *this;
       --retval;
       return retval;
     }
@@ -157,11 +161,14 @@ class dense_dynamic_index_map
     return end();
   }
 
-  const_iterator erase(const_iterator it) const {
+  const_iterator erase(const_iterator it) {
+    if (!this->is_set(it.ind)) return end();
+
     base_type::erase(it.ind);
     return it++;
   }
-  iterator erase(iterator it) const {
+  iterator erase(iterator it) {
+    if (!this->is_set(it.ind)) return end();
     base_type::erase(it.ind);
     return it++;
   }
