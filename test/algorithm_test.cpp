@@ -1,10 +1,10 @@
 #include <algorithm.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <boost/range.hpp>
 
 #include <algorithm>
 #include <array>
+#include <boost/range.hpp>
 #include <functional>
 #include <iterator>
 #include <vector>
@@ -71,7 +71,9 @@ TEST(transform_if, transform_if) {
       [](const int& i) { return i + 10; });
 
   EXPECT_EQ(out_it, std::next(out.begin(), 5));
-  EXPECT_THAT(boost::make_iterator_range(out.begin(), std::next(out.begin(), 5)) , testing::ElementsAre(10, 12, 14, 16, 18));
+  EXPECT_THAT(
+      boost::make_iterator_range(out.begin(), std::next(out.begin(), 5)),
+      testing::ElementsAre(10, 12, 14, 16, 18));
 }
 
 TEST(permutations_without_replacement, permutations_without_replacement) {

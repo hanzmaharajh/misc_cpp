@@ -5,6 +5,8 @@
 #include <optional>
 #include <string_view>
 
+namespace {
+
 struct SpecMemberCountingFixture : public testing::Test {
   static struct CallCounter {
     size_t constructor_calls = 0;
@@ -52,6 +54,8 @@ struct SpecMemberCountingFixture : public testing::Test {
   }
 };
 SpecMemberCountingFixture::CallCounter SpecMemberCountingFixture::call_counts{};
+
+}  // namespace
 
 using StaticArrCountingFixture = SpecMemberCountingFixture;
 
