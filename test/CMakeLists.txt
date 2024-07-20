@@ -14,7 +14,10 @@ add_executable(tests
     vector_of_optional_test.cpp
 )
 
-
+target_include_directories(tests
+    INTERFACE 
+        .
+)
 target_link_libraries(tests
     PRIVATE
         project_options

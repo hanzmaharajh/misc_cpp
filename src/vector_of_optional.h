@@ -1,11 +1,7 @@
 #pragma once
 
 #include <climits>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -48,23 +44,37 @@ class VectorOfOptional {
     return octs[i / CHAR_BIT].bits & (1 << (i & ((1 << CHAR_BIT) - 1)));
   }
 
+  static void set_bit(size_t i, arr_range<details::octet> bit_range) {
+    bit_range[i / CHAR_BIT].bits |=
+        static_cast<uint8_t>(1u << (i & ((1 << CHAR_BIT) - 1u)));
+  }
+
+  static void reset_bit(size_t i, arr_range<details::octet> bit_range) {
+    bit_range[i >> uint8_t{CHAR_BIT}].bits &=
+        static_cast<uint8_t>(~(1u << (i & ((1 << CHAR_BIT) - 1u))));
+  }
+
   bool is_set(size_t i) const {
     return is_bit_set(i, storages.template get<BITS_STORE_IND>());
   }
 
   void set_bit(size_t i) {
     auto bit_range = storages.template get<BITS_STORE_IND>();
+    set_bit(i, bit_range);
     bit_range[i / CHAR_BIT].bits |=
         static_cast<uint8_t>(1u << (i & ((1 << CHAR_BIT) - 1u)));
   }
 
   void reset_bit(size_t i) {
     auto bit_range = storages.template get<BITS_STORE_IND>();
-    bit_range[i >> uint8_t{CHAR_BIT}].bits &=
-        static_cast<uint8_t>(~(1u << (i & ((1 << CHAR_BIT) - 1u))));
+    reset_bit(i, bit_range);
   }
 
-  void maybe_reallocate_exact(size_t s) {
+  static size_t exp_reallocation_size(size_t s) {
+    return std::max<size_t>(2 * (s - 1), 1);
+  }
+
+  void maybe_reallocate_and_copy_exact(size_t s) {
     auto tmp_storages = make_storages(s);
 
     this->copy_to_empty_storages(std::move(storages), tmp_storages);
@@ -74,9 +84,9 @@ class VectorOfOptional {
     destroy_arr_elements(tmp_storages);
   }
 
-  void maybe_reallocate(size_t s) {
+  void maybe_reallocate_and_copy(size_t s) {
     if (capacity() >= s) return;
-    maybe_reallocate_exact(std::max<size_t>(2 * (s - 1), 1));
+    maybe_reallocate_and_copy_exact(exp_reallocation_size(s));
   }
 
   static void destroy_arr_elements(
@@ -94,11 +104,11 @@ class VectorOfOptional {
 
   template <typename Array1, typename Array2>
   static void copy_to_empty_storages(Array1&& from, Array2&& to) {
-    const auto& to_data_range = to.template get<DATA_STORE_IND>();
-    const auto& from_data_range = from.template get<DATA_STORE_IND>();
+    auto to_data_range = to.template get<DATA_STORE_IND>();
+    auto from_data_range = from.template get<DATA_STORE_IND>();
 
-    const auto& to_bits_range = to.template get<BITS_STORE_IND>();
-    const auto& from_bits_range = from.template get<BITS_STORE_IND>();
+    auto to_bits_range = to.template get<BITS_STORE_IND>();
+    auto from_bits_range = from.template get<BITS_STORE_IND>();
     std::copy(from_bits_range.begin(), from_bits_range.end(),
               to_bits_range.begin());
 
@@ -151,10 +161,30 @@ class VectorOfOptional {
     }
     const_iterator operator-=(difference_type diff) { return (*this += -diff); }
 
+    friend const_iterator operator+(const const_iterator& lhs,
+                                    const difference_type& rhs) {
+      auto retval = lhs;
+      retval += rhs;
+      return retval;
+    };
+
+    friend const_iterator operator-(const const_iterator& lhs,
+                                    const difference_type& rhs) {
+      auto retval = lhs;
+      retval -= rhs;
+      return retval;
+    };
+
+    friend difference_type operator-(const const_iterator& lhs,
+                                     const const_iterator& rhs) {
+      return lhs.in - rhs.ind;
+    };
+
     friend bool operator==(const const_iterator& lhs,
                            const const_iterator& rhs) {
       return lhs.ind == rhs.ind && &lhs.arr == &rhs.arr;
     };
+
     friend bool operator!=(const const_iterator& lhs,
                            const const_iterator& rhs) {
       return !(lhs == rhs);
@@ -233,9 +263,13 @@ class VectorOfOptional {
     return const_cast<VectorOfOptional*>(this)->operator[](pos);
   }
 
+  T* push_back(const T& arg) { return emplace_back(arg); }
+
+  T* push_back(T&& arg) { return emplace_back(std::move(arg)); }
+
   template <typename... Args>
   T* emplace_back(Args&&... args) {
-    maybe_reallocate(size() + 1);
+    maybe_reallocate_and_copy(size() + 1);
     return emplace_at(curr_size++, std::forward<Args>(args)...);
   }
 
@@ -256,15 +290,41 @@ class VectorOfOptional {
     const auto s = size();
     if (s == pos) return emplace_back(std::forward<Args>(args)...);
 
-    maybe_reallocate(s + 1);
-
-    for (size_t i = s; i > pos; --i) {
-      if (is_set(i - 1)) {
-        emplace_at(i, std::move(*(data() + i - 1)));
-        reset(i - 1);
-      } else {
-        reset(i);
+    if (s + 1 <= capacity()) {
+      // If we don't need to reallocate, we can just move the data behind the
+      // new object
+      for (size_t i = s; i > pos; --i) {
+        if (is_set(i - 1)) {
+          emplace_at(i, std::move(*(data() + i - 1)));
+          reset(i - 1);
+        } else {
+          reset(i);
+        }
       }
+    } else {
+      // We need to reallocate.
+      // Copy the data to the new storage, with a hole for the new object
+      auto tmp_storages = make_storages(exp_reallocation_size(s + 1));
+
+      auto to_data_range = tmp_storages.template get<DATA_STORE_IND>();
+      auto from_data_range = storages.template get<DATA_STORE_IND>();
+
+      auto to_bits_range = tmp_storages.template get<BITS_STORE_IND>();
+      auto from_bits_range = storages.template get<BITS_STORE_IND>();
+
+      for (size_t i = 0; i < s; ++i) {
+        const size_t to_pos = i + (i >= pos);
+        if (is_bit_set(i, from_bits_range)) {
+          set_bit(to_pos, to_bits_range);
+          new (to_data_range.begin() + to_pos) T(std::move(from_data_range[i]));
+        } else {
+          reset_bit(to_pos, to_bits_range);
+        }
+      }
+
+      using std::swap;
+      swap(storages, tmp_storages);
+      destroy_arr_elements(tmp_storages);
     }
 
     auto retval = emplace_at(pos, std::forward<Args>(args)...);
@@ -277,6 +337,8 @@ class VectorOfOptional {
       emplace_at(i, t);
     }
   }
+
+  void fill(std::nullopt_t) { clear(); }
 
   void reset(size_t pos) {
     if (is_set(pos)) {
@@ -292,7 +354,7 @@ class VectorOfOptional {
       }
       curr_size = s;
     } else if (s > size()) {
-      maybe_reallocate_exact(s);
+      maybe_reallocate_and_copy_exact(s);
       curr_size = s;
     }
   }
@@ -314,13 +376,13 @@ class VectorOfOptional {
   void clear() {
     for (size_t i = 0; i < size(); ++i) {
       clear(i);
-      curr_size = 0;
     }
+    curr_size = 0;
   }
 
   void reserve(size_t s) {
     if (capacity() >= s) return;
-    maybe_reallocate_exact(s);
+    maybe_reallocate_and_copy_exact(s);
   }
 
   [[nodiscard]] size_t size() const { return curr_size; }

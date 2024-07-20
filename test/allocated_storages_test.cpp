@@ -8,6 +8,38 @@
 #include <iterator>
 #include <memory>
 
+namespace {
+template <size_t ID, size_t OnConstruction, size_t OnCopy, size_t OnDestroy>
+struct Thrower {
+  static size_t constructed, copied, destroyed;
+  Thrower() {
+    if (OnConstruction != 0 && constructed + 1 == OnConstruction) {
+      throw std::exception();
+    }
+    ++constructed;
+  }
+  Thrower(const Thrower&) {
+    if (OnCopy != 0 && copied + 1 == OnCopy) {
+      throw std::exception();
+    }
+    ++copied;
+  }
+  ~Thrower() { ++destroyed; }
+  static void reset() {
+    constructed = 0;
+    copied = 0;
+    destroyed = 0;
+  }
+};
+template <size_t ID, size_t OnConstruction, size_t OnCopy, size_t OnDestroy>
+size_t Thrower<ID, OnConstruction, OnCopy, OnDestroy>::constructed = 0;
+template <size_t ID, size_t OnConstruction, size_t OnCopy, size_t OnDestroy>
+size_t Thrower<ID, OnConstruction, OnCopy, OnDestroy>::copied = 0;
+template <size_t ID, size_t OnConstruction, size_t OnCopy, size_t OnDestroy>
+size_t Thrower<ID, OnConstruction, OnCopy, OnDestroy>::destroyed = 0;
+
+}  // namespace
+
 TEST(align, unique_arrays) {
   EXPECT_EQ(alignof(char), 1);
   EXPECT_GT(alignof(size_t), 1);
@@ -71,73 +103,29 @@ TEST(deletes, unique_arrays) {
 }
 
 TEST(exception_on_init_list, unique_arrays) {
-  static size_t constructed, copied, destroyed;
-  struct Throws {
-    Throws() { ++constructed; }
-    Throws(const Throws&) {
-      if (copied + 1 == 3) {
-        throw std::exception();
-      }
-      ++copied;
-    }
-    ~Throws() { ++destroyed; }
-  };
-
+  using Throws = Thrower<__COUNTER__, 0, 3, 0>;
+  Throws::reset();
   try {
-    constructed = 0, copied = 0, destroyed = 0;
     const misc::unique_arrays arr(
         {'a', 'b', 'c'}, {Throws{}, Throws{}, Throws{}, Throws{}, Throws{}});
     FAIL();
   } catch (const std::exception&) {
-    EXPECT_EQ(constructed, 5);
-    EXPECT_EQ(copied, 2);
-    EXPECT_EQ(destroyed, constructed + copied);
+    EXPECT_EQ(Throws::constructed, 5);
+    EXPECT_EQ(Throws::copied, 2);
+    EXPECT_EQ(Throws::destroyed, Throws::constructed + Throws::copied);
   }
 }
 
 TEST(exception_on_init, unique_arrays) {
-  static size_t constructed;
-  static size_t destroyed;
-
-  struct Throws {
-    Throws() {
-      if (constructed + 1 == 3) {
-        throw std::exception();
-      }
-      ++constructed;
-    }
-    ~Throws() { ++destroyed; }
-  };
+  using Throws = Thrower<__COUNTER__, 3, 0, 0>;
+  Throws::reset();
 
   try {
-    constructed = 0;
-    destroyed = 0;
     const misc::unique_arrays<char, Throws> arr(2, 5);
     FAIL();
   } catch (const std::exception&) {
-    EXPECT_EQ(constructed, 2);
-    EXPECT_EQ(destroyed, 2);
-  }
-}
-
-TEST(exception_on_copy, unique_arrays) {
-  static size_t constructed;
-
-  struct Throws {
-    Throws() {
-      if (constructed + 1 == 3) {
-        throw std::exception();
-      }
-      ++constructed;
-    }
-  };
-
-  try {
-    constructed = 0;
-    const misc::unique_arrays<char, Throws> arr(2, 5);
-    FAIL();
-  } catch (const std::exception&) {
-    EXPECT_EQ(constructed, 2);
+    EXPECT_EQ(Throws::constructed, 2);
+    EXPECT_EQ(Throws::destroyed, 2);
   }
 }
 
@@ -161,5 +149,3 @@ TEST(unique_arrays, move) {
   arrs2.reset();
   EXPECT_EQ(copy_int_ptr.use_count(), 1);
 }
-
-// TODO Test exceptions mid-copy, mid-init

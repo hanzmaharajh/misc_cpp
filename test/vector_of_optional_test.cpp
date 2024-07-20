@@ -159,3 +159,168 @@ TEST_F(VectorOfOptionalSingleFixture, Move) {
 
   ASSERT_EQ(ptr_10.use_count(), 2);
 }
+
+namespace {
+
+struct SpecMemberCountingFixture : public testing::Test {
+  static struct CallCounter {
+    size_t constructor_calls = 0;
+    size_t move_constructor_calls = 0;
+    size_t copy_constructor_calls = 0;
+    size_t destructor_calls = 0;
+    size_t allocating_new_calls = 0;
+    size_t placement_new_calls = 0;
+  } call_counts;
+
+  struct TestElement {
+    size_t v;
+    TestElement() : v{0} { ++call_counts.constructor_calls; }
+    TestElement(size_t val) : v{val} { ++call_counts.constructor_calls; }
+    TestElement(const TestElement& t) : v{t.v} {
+      ++call_counts.constructor_calls;
+      ++call_counts.copy_constructor_calls;
+    }
+    TestElement(TestElement&& t) : v{t.v} {
+      ++call_counts.constructor_calls;
+      ++call_counts.move_constructor_calls;
+    }
+    ~TestElement() { ++call_counts.destructor_calls; }
+    void* operator new(size_t size) {
+      ++call_counts.allocating_new_calls;
+      return ::operator new(size);
+    }
+    void* operator new(std::size_t size, void* b) {
+      ++call_counts.placement_new_calls;
+      return ::operator new(size, b);
+    }
+    friend bool operator==(const TestElement& l, const TestElement& r) {
+      return l.v == r.v;
+    }
+    [[maybe_unused]] friend bool operator!=(const TestElement& l,
+                                            const TestElement& r) {
+      return !(l == r);
+    }
+  };
+
+  SpecMemberCountingFixture() { call_counts = CallCounter{}; }
+
+  ~SpecMemberCountingFixture() {
+    EXPECT_EQ(call_counts.allocating_new_calls, 0);
+    EXPECT_EQ(call_counts.constructor_calls, call_counts.destructor_calls);
+  }
+};
+SpecMemberCountingFixture::CallCounter SpecMemberCountingFixture::call_counts{};
+
+}  // namespace
+
+using VectorOfOptionalCountingFixture = SpecMemberCountingFixture;
+
+TEST_F(VectorOfOptionalCountingFixture, DefaultConstruct) {
+  misc::VectorOfOptional<TestElement> v;
+  EXPECT_EQ(call_counts.constructor_calls, 0);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, Destroy) {
+  {
+    misc::VectorOfOptional<TestElement> v;
+    v.emplace_back();
+    EXPECT_EQ(call_counts.constructor_calls, 1);
+  }
+  EXPECT_EQ(call_counts.destructor_calls, 1);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, Emplace) {
+  misc::VectorOfOptional<TestElement> v;
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  v.emplace_at(0);
+  EXPECT_EQ(call_counts.constructor_calls, 1 + 1);
+  EXPECT_EQ(call_counts.destructor_calls, 1);
+
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls,
+            2 + 1 /* allocating new space and moving */ + 1 /* new object */);
+  EXPECT_EQ(call_counts.move_constructor_calls,
+            1 /* allocating new space and moving */);
+  EXPECT_EQ(call_counts.destructor_calls, 1 + 1);
+
+  EXPECT_EQ(call_counts.allocating_new_calls, 0);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, EmplaceWithoutRealloc) {
+  misc::VectorOfOptional<TestElement> v;
+  v.reserve(2);
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  v.emplace(0);
+  EXPECT_EQ(call_counts.constructor_calls,
+            1 + 1 /* repositioning */ + 1 /* new object*/);
+  EXPECT_EQ(call_counts.destructor_calls, 1);
+
+  EXPECT_EQ(call_counts.allocating_new_calls, 0);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, EmplaceWithRealloc) {
+  misc::VectorOfOptional<TestElement> v;
+  v.reserve(1);
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  v.emplace(0);
+  EXPECT_EQ(call_counts.constructor_calls,
+            1 + 1 /* repositioning */ + 1 /* new object*/);
+  EXPECT_EQ(call_counts.destructor_calls, 1);
+
+  EXPECT_EQ(call_counts.allocating_new_calls, 0);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, Reserve) {
+  misc::VectorOfOptional<TestElement> v;
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  v.reserve(5);
+  EXPECT_EQ(call_counts.constructor_calls,
+            1 + 1 /* allocating new space and moving */);
+  EXPECT_EQ(call_counts.move_constructor_calls,
+            1 /* allocating new space and moving */);
+  EXPECT_EQ(call_counts.destructor_calls, 1);
+
+  EXPECT_EQ(call_counts.allocating_new_calls, 0);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, Erase) {
+  misc::VectorOfOptional<TestElement> v;
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+  EXPECT_EQ(call_counts.destructor_calls, 0);
+
+  v.erase(0);
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+  EXPECT_EQ(call_counts.destructor_calls, 1);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, Copy) {
+  misc::VectorOfOptional<TestElement> v;
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  const auto v2 = v;
+  EXPECT_EQ(call_counts.constructor_calls, 2);
+  EXPECT_EQ(call_counts.copy_constructor_calls, 1);
+
+  EXPECT_EQ(call_counts.allocating_new_calls, 0);
+}
+
+TEST_F(VectorOfOptionalCountingFixture, Move) {
+  misc::VectorOfOptional<TestElement> v;
+  v.emplace_back();
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  const auto v2 = std::move(v);
+  EXPECT_EQ(call_counts.constructor_calls, 1);
+
+  EXPECT_EQ(call_counts.allocating_new_calls, 0);
+}
