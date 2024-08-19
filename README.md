@@ -2,7 +2,7 @@
 
 
 ### A few C++ functions and classes that I have written, and may be useful elsewhere. 
-#### (Much of this code has found minimal use and has not been fully tested. I am happy to receive any feedback / advice / enhancements / etc.)
+#### (Much of this code is experimental and has found minimal use and has not been fully tested. I am happy to receive any feedback / advice / enhancements / etc.)
 
 
 
