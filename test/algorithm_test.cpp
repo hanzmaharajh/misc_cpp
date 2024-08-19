@@ -11,7 +11,7 @@
 
 #include "test.h"
 
-TEST(sort, sort) {
+TEST(transform_sort, sort) {
   ::testing::MockFunction<int(int)> inverse;
   ON_CALL(inverse, Call).WillByDefault([](const auto& val) { return -val; });
 
@@ -88,4 +88,24 @@ TEST(permutations_without_replacement, permutations_without_replacement) {
 
   EXPECT_EQ(out_func.acc.size(), 60);
   EXPECT_EQ(out_func.copy_constructed, 0);
+}
+
+using AlgorithmCountingFixture = misc::SpecMemberCountingFixture;
+
+TEST_F(AlgorithmCountingFixture, PartitionTransform) {
+  std::array<TestElement, 10> vec{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  ::testing::MockFunction<size_t(const TestElement&)> get_val;
+  ON_CALL(get_val, Call).WillByDefault([](const auto& e) { return e.v; });
+  EXPECT_CALL(get_val, Call).Times(static_cast<int>(vec.size()));
+
+  misc::partition_transform(vec.begin(), vec.end(), get_val.AsStdFunction(),
+                            [](size_t v) { return v % 2 == 0; });
+
+  EXPECT_EQ(call_counts.constructor_calls, 10);
+
+  EXPECT_THAT(
+      boost::make_iterator_range(vec.begin(), std::next(vec.begin(), 5)),
+      testing::UnorderedElementsAre(2, 4, 6, 8, 10));
+  EXPECT_THAT(boost::make_iterator_range(std::next(vec.begin(), 5), vec.end()),
+              testing::UnorderedElementsAre(1, 3, 5, 7, 9));
 }

@@ -11,6 +11,8 @@ add_executable(tests
     pack_manipulation_test.cpp
     semaphore_test.cpp
     size_aware_cache_test.cpp
+    tagged_ptr_test.cpp
+    test.cpp
     vector_of_optional_test.cpp
 )
 
