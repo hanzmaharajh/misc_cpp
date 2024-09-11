@@ -211,9 +211,9 @@ Func visit_permutations_without_replacement(Iter begin, Iter end, Func f) {
   }
 }
 
-template <typename Iter, typename UnaryOperation, typename Compare>
+template <typename Iter, typename UnaryOperation, typename UnaryPred>
 void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
-                         Compare&& comp) {
+                         UnaryPred&& pred) {
   using Diff = typename std::iterator_traits<Iter>::difference_type;
   using T = typename std::iterator_traits<Iter>::value_type;
   using Key = decltype(op(std::declval<T>()));
@@ -233,11 +233,10 @@ void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
                 [&](const auto& v) { new (end_key_created++) Key{op(v)}; });
 
   std::iota(indices_range.begin(), indices_range.end(), Diff{});
-  std::sort(indices_range.begin(), indices_range.end(),
-            [&, keys = keys_range](Diff a, Diff b) {
-              return comp(keys[static_cast<size_t>(a)],
-                          keys[static_cast<size_t>(b)]);
-            });
+  std::partition(indices_range.begin(), indices_range.end(),
+                 [&, keys = keys_range](Diff a) {
+                   return pred(keys[static_cast<size_t>(a)]);
+                 });
   boost::algorithm::apply_permutation(begin, end, indices_range.begin(),
                                       indices_range.end());
 
