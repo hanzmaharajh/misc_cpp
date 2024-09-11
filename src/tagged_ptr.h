@@ -38,6 +38,7 @@ class tagged_ptr {
   T* operator->() const { return get(); }
 };
 
+
 template <typename T, size_t Align>
 class tagged_ptr<T[], Align> : private tagged_ptr<T, Align> {
   using base_type = tagged_ptr<T, Align>;
