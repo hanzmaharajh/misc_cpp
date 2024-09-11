@@ -4,7 +4,7 @@
 #include "log2.h"
 
 namespace misc {
-template <typename T>
+template <typename T, size_t Align = alignof(T)>
 class tagged_ptr {
   // TODO Use log2() when it is constexpr
   static constexpr size_t num_bits(size_t v) {
@@ -12,7 +12,7 @@ class tagged_ptr {
   }
 
  public:
-  constexpr static const size_t tag_bit_width = num_bits(alignof(T)) - 1;
+  constexpr static const size_t tag_bit_width = num_bits(Align) - 1;
 
  protected:
   static_assert(tag_bit_width > 0, "alignment doesn't allow space for tag");
@@ -38,6 +38,23 @@ class tagged_ptr {
   T* operator->() const { return get(); }
 };
 
+
+template <typename T, size_t Align>
+class tagged_ptr<T[], Align> : private tagged_ptr<T, Align> {
+  using base_type = tagged_ptr<T, Align>;
+
+ public:
+  using base_type::tag_bit_width;
+  using base_type::tagged_ptr;
+
+  using base_type::get;
+  using base_type::reset;
+  using base_type::set_tag;
+  using base_type::tag;
+  using base_type::operator->;
+  T& operator[](size_t i) const { return get()[i]; }
+};
+
 template <typename T>
 class unique_tagged_ptr : private tagged_ptr<T> {
   using base_type = tagged_ptr<T>;
@@ -60,6 +77,36 @@ class unique_tagged_ptr : private tagged_ptr<T> {
   using base_type::set_tag;
   using base_type::tag;
   using base_type::operator->;
+
+  void reset(T* ptr = nullptr) {
+    delete get();
+    base_type::reset(ptr);
+  }
+};
+
+template <typename T>
+class unique_tagged_ptr<T[]> : private tagged_ptr<T[]> {
+  using base_type = tagged_ptr<T[]>;
+
+ public:
+  unique_tagged_ptr(T* ptr, size_t tag_value) : base_type(ptr, tag_value) {}
+  unique_tagged_ptr(const unique_tagged_ptr&) = delete;
+  unique_tagged_ptr(unique_tagged_ptr&& o) noexcept {
+    this->m_ptr = o.m_ptr;
+    o.m_ptr = 0;
+  }
+  unique_tagged_ptr& operator=(const unique_tagged_ptr&) = delete;
+  unique_tagged_ptr& operator=(unique_tagged_ptr&& o) {
+    this->m_ptr = o.m_ptr;
+    o.m_ptr = 0;
+  }
+  ~unique_tagged_ptr() { delete[] get(); }
+
+  using base_type::get;
+  using base_type::set_tag;
+  using base_type::tag;
+  using base_type::operator->;
+  using base_type::operator[];
 
   void reset(T* ptr = nullptr) {
     delete get();
