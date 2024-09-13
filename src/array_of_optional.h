@@ -15,8 +15,10 @@ class ArrayOfOptional {
   std::bitset<N> is_set{};
   std::aligned_storage_t<sizeof(T), alignof(T[])> storage[N];
 
-  T* data() { return reinterpret_cast<T*>(storage); }
-  const T* data() const { return reinterpret_cast<const T*>(storage); }
+  [[nodiscard]] T* data() { return reinterpret_cast<T*>(storage); }
+  [[nodiscard]] const T* data() const {
+    return reinterpret_cast<const T*>(storage);
+  }
 
   template <typename Array>
   void copy_to_empty_arr(Array&& o) {

@@ -137,15 +137,17 @@ class dense_dynamic_index_map
     const dense_dynamic_index_map& arr;
   };
 
-  const_iterator begin() const { return const_iterator{0, *this}; }
-  iterator begin() { return iterator{0, *this}; }
+  [[nodiscard]] const_iterator begin() const {
+    return const_iterator{0, *this};
+  }
+  [[nodiscard]] iterator begin() { return iterator{0, *this}; }
 
-  iterator end() { return iterator{base_type::size(), *this}; }
-  const_iterator end() const {
+  [[nodiscard]] iterator end() { return iterator{base_type::size(), *this}; }
+  [[nodiscard]] const_iterator end() const {
     return const_iterator{base_type::size(), *this};
   }
 
-  const_iterator find(const Key& key) const {
+  [[nodiscard]] const_iterator find(const Key& key) const {
     const auto ind = index_map(key);
     if (this->is_set(ind)) {
       return const_iterator{ind, *this};
@@ -153,7 +155,7 @@ class dense_dynamic_index_map
     return end();
   }
 
-  iterator find(const Key& key) {
+  [[nodiscard]] iterator find(const Key& key) {
     const auto ind = index_map(key);
     if (this->is_set(ind)) {
       return iterator{ind, *this};
@@ -173,7 +175,7 @@ class dense_dynamic_index_map
     return it++;
   }
 
-  Value& operator[](Key key) {
+  [[nodiscard]] Value& operator[](Key key) {
     const auto ind = index_map(key);
     if (ind < base_type::size()) {
       if (auto* v = base_type::operator[](ind)) {
@@ -285,10 +287,12 @@ class dense_dynamic_index_map<size_t, Value, identity>
       return retval;
     }
 
-    friend bool operator==(const iterator& lhs, const iterator& rhs) {
+    [[nodiscard]] friend bool operator==(const iterator& lhs,
+                                         const iterator& rhs) {
       return lhs.ind == rhs.ind && &lhs.arr == &rhs.arr;
     };
-    friend bool operator!=(const iterator& lhs, const iterator& rhs) {
+    [[nodiscard]] friend bool operator!=(const iterator& lhs,
+                                         const iterator& rhs) {
       return !(lhs == rhs);
     };
 
@@ -345,12 +349,12 @@ class dense_dynamic_index_map<size_t, Value, identity>
       return retval;
     }
 
-    friend bool operator==(const const_iterator& lhs,
-                           const const_iterator& rhs) {
+    [[nodiscard]] friend bool operator==(const const_iterator& lhs,
+                                         const const_iterator& rhs) {
       return lhs.ind == rhs.ind && &lhs.arr == &rhs.arr;
     };
-    friend bool operator!=(const const_iterator& lhs,
-                           const const_iterator& rhs) {
+    [[nodiscard]] friend bool operator!=(const const_iterator& lhs,
+                                         const const_iterator& rhs) {
       return !(lhs == rhs);
     };
 
@@ -359,15 +363,17 @@ class dense_dynamic_index_map<size_t, Value, identity>
     const dense_dynamic_index_map& arr;
   };
 
-  const_iterator begin() const { return const_iterator{0, *this}; }
-  iterator begin() { return iterator{0, *this}; }
+  [[nodiscard]] const_iterator begin() const {
+    return const_iterator{0, *this};
+  }
+  [[nodiscard]] iterator begin() { return iterator{0, *this}; }
 
-  iterator end() { return iterator{base_type::size(), *this}; }
-  const_iterator end() const {
+  [[nodiscard]] iterator end() { return iterator{base_type::size(), *this}; }
+  [[nodiscard]] const_iterator end() const {
     return const_iterator{base_type::size(), *this};
   }
 
-  const_iterator find(const Key& key) const {
+  [[nodiscard]] const_iterator find(const Key& key) const {
     const auto ind = key;
     if (this->is_set(ind)) {
       return const_iterator{ind, *this};
@@ -375,7 +381,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
     return end();
   }
 
-  iterator find(const Key& key) {
+  [[nodiscard]] iterator find(const Key& key) {
     const auto ind = key;
     if (this->is_set(ind)) {
       return iterator{ind, *this};
@@ -395,7 +401,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
     return it++;
   }
 
-  Value& operator[](Key key) {
+  [[nodiscard]] Value& operator[](Key key) {
     const auto ind = key;
     if (ind < base_type::size()) {
       if (auto* v = base_type::operator[](ind)) {

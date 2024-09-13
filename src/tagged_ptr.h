@@ -7,7 +7,7 @@ namespace misc {
 template <typename T, size_t Align = alignof(T)>
 class tagged_ptr {
   // TODO Use log2() when it is constexpr
-  static constexpr size_t num_bits(size_t v) {
+  [[nodiscard]] static constexpr size_t num_bits(size_t v) {
     return v < 2 ? v : 1 + num_bits(v >> 1);
   }
 
@@ -25,12 +25,18 @@ class tagged_ptr {
       : m_ptr(reinterpret_cast<uintptr_t>(ptr) | tag) {
     assert((tag & ptr_mask) == 0);
   }
-  T* get() const { return reinterpret_cast<T*>(m_ptr & ptr_mask); }
-  size_t tag() const { return m_ptr & tag_mask; }
+
+  [[nodiscard]] T* get() const {
+    return reinterpret_cast<T*>(m_ptr & ptr_mask);
+  }
+
+  [[nodiscard]] size_t tag() const { return m_ptr & tag_mask; }
+
   void set_tag(size_t tag) {
     assert((tag & ptr_mask) == 0);
     m_ptr = (m_ptr & ptr_mask) | tag;
   }
+
   void reset(T* ptr = nullptr) {
     assert((reinterpret_cast<uintptr_t>(ptr) & tag_mask) == 0);
     m_ptr = (m_ptr & tag_mask) | reinterpret_cast<uintptr_t>(ptr);
@@ -44,15 +50,14 @@ class tagged_ptr<T[], Align> : private tagged_ptr<T, Align> {
   using base_type = tagged_ptr<T, Align>;
 
  public:
-  using base_type::tag_bit_width;
-  using base_type::tagged_ptr;
-
   using base_type::get;
   using base_type::reset;
   using base_type::set_tag;
   using base_type::tag;
+  using base_type::tag_bit_width;
+  using base_type::tagged_ptr;
   using base_type::operator->;
-  T& operator[](size_t i) const { return get()[i]; }
+  [[nodiscard]] T& operator[](size_t i) const { return get()[i]; }
 };
 
 template <typename T>
