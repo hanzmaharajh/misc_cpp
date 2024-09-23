@@ -124,18 +124,17 @@ template <size_t Align, typename... Types>
 class variant_tagged_ptr : private tagged_ptr<char, Align> {
   using base_type = tagged_ptr<char, Align>;
 
-  template <typename Visitor, size_t Ind>
-  auto visit(Visitor&& visitor, std::integer_sequence<size_t, Ind>) const {
-    return visitor(get_as<std::tuple_element_t<Ind, std::tuple<Types...>>>());
-  }
-
   template <typename Visitor, size_t Ind, size_t... Inds>
   auto visit(Visitor&& visitor,
              std::integer_sequence<size_t, Ind, Inds...>) const {
     if (Ind == index())
       return visitor(get_as<std::tuple_element_t<Ind, std::tuple<Types...>>>());
-    return visit(std::forward<Visitor>(visitor),
-                 std::integer_sequence<size_t, Inds...>{});
+    if constexpr (sizeof...(Inds) == 0) {
+      // TODO We should never get here. Should we terminate? Throw?
+      return visitor(get_as<std::tuple_element_t<Ind, std::tuple<Types...>>>());
+    } else
+      return visit(std::forward<Visitor>(visitor),
+                   std::integer_sequence<size_t, Inds...>{});
   }
 
  public:
@@ -164,7 +163,7 @@ class variant_tagged_ptr : private tagged_ptr<char, Align> {
     base_type::set_tag(index_of_v<Type, Types...>);
   }
 
-  void reset(nullptr_t) {
+  void reset(std::nullptr_t) {
     base_type::reset(nullptr);
     base_type::set_tag(0);
   }
