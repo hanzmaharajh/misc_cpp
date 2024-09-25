@@ -162,7 +162,7 @@ TEST_F(VectorOfOptionalSingleFixture, Move) {
   ASSERT_EQ(ptr_10.use_count(), 2);
 }
 
-using VectorOfOptionalCountingFixture = misc::SpecMemberCountingFixture;
+using VectorOfOptionalCountingFixture = SpecMemberCountingFixture;
 
 TEST_F(VectorOfOptionalCountingFixture, DefaultConstruct) {
   misc::VectorOfOptional<TestElement> v;

@@ -4,7 +4,7 @@
 
 namespace misc {
 template <typename Enum>
-constexpr auto underlying_value(Enum e) {
+[[nodiscard]] constexpr auto underlying_value(Enum e) {
   return static_cast<std::underlying_type_t<Enum>>(e);
 }
 }  // namespace misc

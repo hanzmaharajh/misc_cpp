@@ -197,7 +197,7 @@ class VectorOfOptional {
 
   VectorOfOptional() noexcept : curr_size{0}, storages{make_storages(0)} {}
 
-  VectorOfOptional(const VectorOfOptional& o) noexcept
+  VectorOfOptional(const VectorOfOptional& o) 
       : storages{make_storages(o.size())} {
     resize(o.size());
     for (size_t i = 0; i < o.size(); ++i) {
@@ -209,7 +209,7 @@ class VectorOfOptional {
     }
   };
 
-  VectorOfOptional(VectorOfOptional&& o) noexcept : storages{make_storages(0)} {
+  VectorOfOptional(VectorOfOptional&& o)  : storages{make_storages(0)} {
     using std::swap;
     swap(o.storages, storages);
     swap(o.curr_size, curr_size);

@@ -108,7 +108,7 @@ class allocated_storages {
   }
 
   template <size_t Ind>
-  std::pair<size_t, size_t> get_span() const {
+  [[nodiscard]] std::pair<size_t, size_t> get_span() const {
     if constexpr (Ind == 0) {
       return {0, m_first_span_len};
     }
