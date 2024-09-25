@@ -1,8 +1,7 @@
 #pragma once
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
-
-namespace misc {
 
 struct SpecMemberCountingFixture : public testing::Test {
   static struct CallCounter {
@@ -106,4 +105,3 @@ struct CopyRecorder {
   size_t copy_assigned = 0;
   size_t move_assigned = 0;
 };
-}  // namespace misc

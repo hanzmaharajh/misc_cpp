@@ -26,7 +26,7 @@ TEST(unique_tagged_ptr, Construct) {
   EXPECT_EQ(tagged.tag(), 0x07);
 }
 
-using UniqueTaggedPtrCountingFixture = misc::SpecMemberCountingFixture;
+using UniqueTaggedPtrCountingFixture = SpecMemberCountingFixture;
 
 TEST_F(UniqueTaggedPtrCountingFixture, Destroy) {
   if (alignof(TestElement) != 8) GTEST_SKIP();
@@ -99,6 +99,7 @@ TEST(variant_tagged_ptr, variant_tagged_ptr) {
     B* b_ptr = ptr.get_as<B>();
     C* c_ptr = ptr.get_as<C>();
     EXPECT_EQ(b_ptr, &b);
+    EXPECT_EQ(b_ptr, ptr.get_as<1>());
     EXPECT_EQ(c_ptr, nullptr);
   }
 

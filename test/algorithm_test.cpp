@@ -78,7 +78,7 @@ TEST(transform_if, transform_if) {
 
 TEST(permutations_without_replacement, permutations_without_replacement) {
   const std::vector<int> v{1, 2, 3, 4, 5};
-  struct Visitor : misc::CopyRecorder {
+  struct Visitor : CopyRecorder {
     std::vector<std::array<int, 3>> acc;
     void operator()(int a, int b, int c) { acc.push_back(std::array{a, b, c}); }
   } in_func;
@@ -90,7 +90,7 @@ TEST(permutations_without_replacement, permutations_without_replacement) {
   EXPECT_EQ(out_func.copy_constructed, 0);
 }
 
-using AlgorithmCountingFixture = misc::SpecMemberCountingFixture;
+using AlgorithmCountingFixture = SpecMemberCountingFixture;
 
 TEST_F(AlgorithmCountingFixture, PartitionTransform) {
   std::array<TestElement, 10> vec{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

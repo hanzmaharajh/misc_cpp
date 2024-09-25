@@ -157,6 +157,15 @@ class variant_tagged_ptr : private tagged_ptr<char, Align> {
     return reinterpret_cast<Type*>(base_type::get());
   }
 
+  template <size_t Ind>
+  [[nodiscard]] auto* get_as() const {
+    using Type = std::tuple_element_t<Ind, std::tuple<Types...>>;
+    if (base_type::tag() != Ind) {
+      return static_cast<Type*>(nullptr);
+    }
+    return reinterpret_cast<Type*>(base_type::get());
+  }
+
   template <typename Type>
   void reset(Type* ptr) {
     base_type::reset(reinterpret_cast<char*>(ptr));
@@ -168,7 +177,7 @@ class variant_tagged_ptr : private tagged_ptr<char, Align> {
     base_type::set_tag(0);
   }
 
-  size_t index() const { return base_type::tag(); }
+  [[nodiscard]] size_t index() const { return base_type::tag(); }
 
   template <typename Visitor>
   auto visit(Visitor&& visitor) const {

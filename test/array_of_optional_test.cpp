@@ -7,7 +7,7 @@
 
 #include "test.h"
 
-using StaticArrCountingFixture = misc::SpecMemberCountingFixture;
+using StaticArrCountingFixture = SpecMemberCountingFixture;
 
 struct StaticArrSingleElementFixture_3_7 : public StaticArrCountingFixture {
   misc::ArrayOfOptional<TestElement, 10> arr;
