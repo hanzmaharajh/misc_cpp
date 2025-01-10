@@ -246,26 +246,62 @@ void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
 // Returns true if the two sorted input ranges share a common element.
 // False, otherwise.
 template <class Iter1, class Iter2, class Comp = std::less<>>
-bool
-sets_intersect(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2, Comp &&comp = Comp())
-{
-    while (first1 != last1 && first2 != last2)
-    {
-        if (comp(*first1, *first2))
-        {
-            ++first1;
-        }
-        else if (comp(*first2, *first1))
-        {
-            ++first2;
-        }
-        else
-        {
-            return true;
-        }
+bool sets_intersect(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
+                    Comp&& comp = Comp()) {
+  while (first1 != last1 && first2 != last2) {
+    if (comp(*first1, *first2)) {
+      ++first1;
+    } else if (comp(*first2, *first1)) {
+      ++first2;
+    } else {
+      return true;
     }
+  }
 
-    return false;
+  return false;
+}
+
+// Merges multiple, sorted, input ranges into a single sorted range, o_it.
+// Each range's iterator must meet the requirements of LegacyForwardIterator.
+template <typename Comp, typename OutItr, typename... Args>
+auto merge(Comp comp, OutItr o_it, const Args&... args) {
+  using ItrType = decltype(std::begin(std::get<0>(take_first<1>(args...))));
+  using ItrPairType = std::pair<ItrType, ItrType>;
+  std::array<ItrPairType, sizeof...(Args) + 1> heap{
+      ItrPairType{std::begin(args), std::end(args)}...};
+
+  auto heap_end = std::partition(heap.begin(), heap.end(), [](const auto& v) {
+    return std::get<0>(v) != std::get<1>(v);
+  });
+
+  if (heap_end == heap.begin()) return o_it;
+
+  const auto& comp_func = [&](const auto& lhs, const auto& rhs) {
+    return comp(*std::get<0>(rhs), *std::get<0>(lhs));
+  };
+
+  std::make_heap(heap.begin(), heap_end, comp_func);
+
+  while (std::next(heap.begin()) != heap_end) {
+    std::pop_heap(heap.begin(), heap_end, comp_func);
+    
+    auto& [max_begin, max_end] = *std::prev(heap_end);
+
+    do {
+      *o_it++ = *max_begin++;
+    } while (max_begin != max_end && comp(*max_begin, *heap[0].first));
+
+    if (max_begin == max_end) {
+      --heap_end;
+    } else {
+      std::push_heap(heap.begin(), heap_end, comp_func);
+    }
+  }
+
+  const auto& [remain_begin, remain_end] = heap[0];
+  o_it = std::copy(remain_begin, remain_end, o_it);
+
+  return o_it;
 }
 
 }  // namespace misc
