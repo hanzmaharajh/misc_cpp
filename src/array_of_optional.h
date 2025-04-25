@@ -112,6 +112,12 @@ class ArrayOfOptional {
 
   ~ArrayOfOptional() { clear(); }
 
+  void swap(ArrayOfOptional& o) noexcept {
+    using std::swap;
+    swap(is_set, o.is_set);
+    swap(storage, o.storage);
+  }
+
   [[nodiscard]] friend bool operator==(const ArrayOfOptional& lhs,
                                        const ArrayOfOptional& rhs) {
     if (lhs.is_set != rhs.is_set) {

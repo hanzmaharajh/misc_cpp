@@ -149,3 +149,13 @@ TEST(unique_arrays, move) {
   arrs2.reset();
   EXPECT_EQ(copy_int_ptr.use_count(), 1);
 }
+
+TEST(unique_arrays, basic_construct) {
+  const auto& arrs = misc::unique_arrays<int, char>(5, 3);
+  const auto& span1 = arrs.get<int>();
+  const auto& span2 = arrs.get<char>();
+  EXPECT_NE(span1.begin(), nullptr);
+  EXPECT_NE(span2.begin(), nullptr);
+  EXPECT_EQ((std::distance(span1.begin(), span1.end())), 5);
+  EXPECT_EQ((std::distance(span2.begin(), span2.end())), 3);
+}

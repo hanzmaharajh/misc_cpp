@@ -246,26 +246,19 @@ void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
 // Returns true if the two sorted input ranges share a common element.
 // False, otherwise.
 template <class Iter1, class Iter2, class Comp = std::less<>>
-bool
-sets_intersect(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2, Comp &&comp = Comp())
-{
-    while (first1 != last1 && first2 != last2)
-    {
-        if (comp(*first1, *first2))
-        {
-            ++first1;
-        }
-        else if (comp(*first2, *first1))
-        {
-            ++first2;
-        }
-        else
-        {
-            return true;
-        }
+bool sets_intersect(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
+                    Comp&& comp = Comp()) {
+  while (first1 != last1 && first2 != last2) {
+    if (comp(*first1, *first2)) {
+      ++first1;
+    } else if (comp(*first2, *first1)) {
+      ++first2;
+    } else {
+      return true;
     }
+  }
 
-    return false;
+  return false;
 }
 
 }  // namespace misc

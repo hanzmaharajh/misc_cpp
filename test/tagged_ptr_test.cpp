@@ -42,7 +42,7 @@ TEST(tagged_arr, Construct) {
   auto ptr = std::make_unique<std::pair<size_t, size_t>[]>(2);
   ptr[0] = {1, 2};
   ptr[1] = {3, 4};
-  misc::tagged_ptr<std::pair<size_t, size_t>[]> tagged { ptr.get(), 0x07 };
+  misc::tagged_ptr<std::pair<size_t, size_t>[]> tagged{ptr.get(), 0x07};
 
   EXPECT_EQ(tagged.get(), ptr.get());
   EXPECT_EQ(tagged[0].first, 1);
@@ -54,10 +54,8 @@ TEST(tagged_arr, Construct) {
 
 TEST(unique_tagged_arr, Construct) {
   if (alignof(std::pair<size_t, size_t>) != 8) GTEST_SKIP();
-  auto ptr = new std::pair<size_t, size_t>[2] {
-    {1, 2}, { 3, 4 }
-  };
-  misc::unique_tagged_ptr<std::pair<size_t, size_t>[]> tagged { ptr, 0x07 };
+  auto ptr = new std::pair<size_t, size_t>[2]{{1, 2}, {3, 4}};
+  misc::unique_tagged_ptr<std::pair<size_t, size_t>[]> tagged{ptr, 0x07};
 
   EXPECT_EQ(tagged.get(), ptr);
   EXPECT_EQ(tagged[0].first, 1);

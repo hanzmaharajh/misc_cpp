@@ -34,9 +34,9 @@ class minmax_heap {
       const value_compare& comp =
           value_compare{}) noexcept(std::
                                         is_nothrow_move_constructible_v<
-                                            container_type>&& std::
-                                            is_nothrow_copy_constructible_v<
-                                                value_compare>)
+                                            container_type> &&
+                                    std::is_nothrow_copy_constructible_v<
+                                        value_compare>)
       : m_heap(std::move(container)), m_comp(comp) {
     init_sequence();
   }
@@ -46,9 +46,17 @@ class minmax_heap {
   minmax_heap& operator=(const minmax_heap&) = default;
   minmax_heap& operator=(minmax_heap&&) = default;
 
+  void swap(minmax_heap& o) noexcept {
+    using std::swap;
+    swap(m_heap, o.m_heap);
+    swap(m_comp, o.m_comp);
+  }
+
   [[nodiscard]] bool empty() const { return m_heap.empty(); }
 
   [[nodiscard]] size_type size() const { return m_heap.size(); }
+
+  void reserve(size_t n) { m_heap.reserve(n); }
 
   [[nodiscard]] const_reference front() const {
     assert(!empty());
@@ -72,13 +80,21 @@ class minmax_heap {
     push();
   }
 
+  template <typename... Args>
+  void emplace(Args&&... args) {
+    m_heap.emplace_back(std::forward<Args>(args)...);
+    push();
+  }
+
   void pop_front() {
+    assert(!m_heap.empty());
     m_heap.front() = std::move(m_heap.back());
     m_heap.pop_back();
     push_down(1);
   }
 
   void pop_back() {
+    assert(!m_heap.empty());
     if (m_heap.size() < 3) {
       m_heap.pop_back();
       return;
@@ -89,7 +105,7 @@ class minmax_heap {
     push_down(max_ind);
   }
 
-  [[nodiscard]] value_compare value_comp() const { return m_comp; }
+  [[nodiscard]] const value_compare& value_comp() const { return m_comp; }
 
   container_type extract_sequence() {
     return container_type{std::move(m_heap)};
@@ -190,13 +206,14 @@ class minmax_heap {
     return retval;
   }
 
-  [[nodiscard]] bool is_grandchild(index_type i, index_type m) const {
+  [[nodiscard]] constexpr static bool is_grandchild(index_type i,
+                                                    index_type m) {
     assert(i > 0);
     assert(m > i);
     return m / 4 == i;
   }
 
-  [[nodiscard]] bool has_grandparent(index_type m) const {
+  [[nodiscard]] constexpr static bool has_grandparent(index_type m) {
     assert(m > 0);
     return m > 3;
   }
@@ -206,17 +223,17 @@ class minmax_heap {
     return 2 * m <= m_heap.size();
   }
 
-  [[nodiscard]] bool is_on_min_level(index_type m) const {
+  [[nodiscard]] constexpr static bool is_on_min_level(index_type m) {
     assert(m > 0);
     return (log2(m) & 0b1) == 0;
   }
 
-  [[nodiscard]] index_type parent(index_type m) const {
+  [[nodiscard]] constexpr static index_type parent(index_type m) {
     assert(m > 1);
     return m / 2;
   }
 
-  [[nodiscard]] index_type grandparent(index_type m) const {
+  [[nodiscard]] constexpr static index_type grandparent(index_type m) {
     assert(m > 2);
     return m / 4;
   }

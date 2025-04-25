@@ -4,9 +4,9 @@
 #include <chrono>
 #include <cmath>
 #include <iterator>
+#include <memory>
 #include <numeric>
 #include <vector>
-#include <memory>
 
 using namespace std::chrono_literals;
 
@@ -111,12 +111,14 @@ TYPED_TEST(Cache_size10Test, FetchEraseExisting) {
   {
     const auto& [inserted_value, inserted] = this->insert({1, ptr1});
     EXPECT_TRUE(inserted);
+    EXPECT_EQ(this->cache_size(), 1);
   }
 
   EXPECT_EQ(this->fetch(1)->get(), ptr1.get());
 
   EXPECT_EQ(this->erase(1), 1);
   EXPECT_FALSE(this->fetch(1));
+  EXPECT_EQ(this->cache_size(), 0);
 }
 
 TYPED_TEST(Cache_size10Test, InsertTwiceFails) {

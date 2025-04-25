@@ -52,8 +52,7 @@ class dense_dynamic_index_map
     pointer operator->() const { return arr.base_type::operator[](ind); }
 
     iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     iterator operator++(int) {
@@ -62,8 +61,7 @@ class dense_dynamic_index_map
       return retval;
     }
     iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     iterator operator--(int) {
@@ -103,8 +101,7 @@ class dense_dynamic_index_map
     pointer operator->() const { return arr.base_type::operator[](ind); }
 
     const_iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     const_iterator operator++(int) {
@@ -113,8 +110,7 @@ class dense_dynamic_index_map
       return retval;
     }
     const_iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     const_iterator operator--(int) {
@@ -251,24 +247,25 @@ class dense_dynamic_index_map<size_t, Value, identity>
     }
 
     reference operator*() {
-      return reference{ind, *arr.base_type::operator[](ind)};
+      return reference { ind, *arr.base_type::operator[](ind) };
     }
     const_reference operator*() const {
-      return const_reference{ind, *arr.base_type::operator[](ind)};
+      return const_reference { ind, *arr.base_type::operator[](ind) };
     }
 
     pointer operator->() {
-      return wrapper{
-          std::pair<const Key, Value&>{ind, *arr.base_type::operator[](ind)}};
+      return wrapper {
+        std::pair<const Key, Value&>{ind, *arr.base_type::operator[](ind)}
+      };
     }
     const_pointer operator->() const {
-      return const_wrapper{std::pair<const Key, const Value&>{
-          ind, *arr.base_type::operator[](ind)}};
+      return const_wrapper {
+        std::pair<const Key, const Value&>{ind, *arr.base_type::operator[](ind)}
+      };
     }
 
     iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     iterator operator++(int) {
@@ -277,8 +274,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
       return retval;
     }
     iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     iterator operator--(int) {
@@ -322,15 +318,14 @@ class dense_dynamic_index_map<size_t, Value, identity>
     }
 
     reference operator*() const {
-      return {ind, *arr.base_type::operator[](ind)};
+      return { ind, *arr.base_type::operator[](ind) };
     }
     pointer operator->() const {
-      return wrapper{std::pair{ind, arr.base_type::operator[](ind)}};
+      return wrapper { std::pair{ind, arr.base_type::operator[](ind)} };
     }
 
     const_iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     const_iterator operator++(int) {
@@ -339,8 +334,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
       return retval;
     }
     const_iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     const_iterator operator--(int) {
