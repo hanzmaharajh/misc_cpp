@@ -24,11 +24,14 @@ class ArrayOfOptional {
   void copy_to_empty_arr(Array&& o) {
     for (size_t i = 0; i < size(); ++i) {
       if (o.is_set[i]) {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wnull-dereference"
         if constexpr (std::is_rvalue_reference_v<decltype(o)>) {
           new (data() + i) T(std::move(*o[i]));
         } else {
           new (data() + i) T(*o[i]);
         }
+        #pragma GCC diagnostic pop
       }
     }
     is_set = o.is_set;

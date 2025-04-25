@@ -53,8 +53,10 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceNewMid) {
   ASSERT_EQ(emplaced, true);
   ASSERT_NE(it, begin());
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 3);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 3);
 
   const auto next = std::next(it);
   ASSERT_EQ(next, find(5));
@@ -68,8 +70,10 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceNewEnd) {
   ASSERT_EQ(emplaced, true);
   ASSERT_NE(it, begin());
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 6);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 6);
 
   const auto next = std::next(it);
   ASSERT_EQ(next, end());
@@ -83,8 +87,10 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceExisting) {
   ASSERT_EQ(emplaced, false);
   ASSERT_EQ(it, begin());
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 1);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 1);
 }
 
 TEST_F(DenseDynamicIndexMapFixture, ReassignElement) {
@@ -92,8 +98,10 @@ TEST_F(DenseDynamicIndexMapFixture, ReassignElement) {
   el = std::make_shared<int>(1000);
   const auto it = find(1);
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 1000);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 1000);
 }
 
 TEST_F(DenseDynamicIndexMapFixture, Erase) {
