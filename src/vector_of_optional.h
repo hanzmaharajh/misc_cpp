@@ -346,7 +346,8 @@ class VectorOfOptional {
   void reset(size_t pos) {
     if (is_set(pos)) {
       reset_bit(pos);
-      std::destroy_at(data() + pos);
+      if (const auto* arr = data())
+        std::destroy_at(arr + pos);
     }
   }
 

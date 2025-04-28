@@ -413,7 +413,11 @@ TEST(SizeAwareCacheTests, MoveValueWorks) {
     const auto& [inserted_value, inserted] =
         cache.insert({0, v});  // insert(pair&&)
     EXPECT_NE(std::data(inserted_value), data_ptr);
-    EXPECT_NE(cache.fetch(0)->data(), data_ptr);
+
+    const auto* r = cache.fetch(0);
+    EXPECT_NE(r, nullptr);
+    EXPECT_NE(r->data(), data_ptr);
+
     EXPECT_EQ(std::size(v), 5);
   }
 
@@ -424,7 +428,11 @@ TEST(SizeAwareCacheTests, MoveValueWorks) {
     const auto& [inserted_value, inserted] =
         cache.insert(promise);  // insert(const pair&)
     EXPECT_NE(std::data(inserted_value), data_ptr);
-    EXPECT_NE(cache.fetch(1)->data(), data_ptr);
+
+    const auto* r = cache.fetch(1);
+    EXPECT_NE(r, nullptr);
+    EXPECT_NE(r->data(), data_ptr);
+
     EXPECT_EQ(std::size(promise.second), 5);
   }
 
@@ -434,7 +442,11 @@ TEST(SizeAwareCacheTests, MoveValueWorks) {
     const auto& [inserted_value, inserted] =
         cache.insert({2, std::move(v)});  // insert(pair&&)
     EXPECT_EQ(std::data(inserted_value), data_ptr);
-    EXPECT_EQ(cache.fetch(2)->data(), data_ptr);
+
+    const auto* r = cache.fetch(2);
+    EXPECT_NE(r, nullptr);
+    EXPECT_EQ(r->data(), data_ptr);
+
     EXPECT_EQ(std::size(v), 0);
   }
 

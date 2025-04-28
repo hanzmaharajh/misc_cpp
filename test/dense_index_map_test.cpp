@@ -6,6 +6,11 @@
 #include <memory>
 #include <string>
 
+
+// TODO Sort this out. There's an issue with the iterators.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
+
 TEST(DenseDynamicIndexMap, ConstructDefault) {
   misc::dense_dynamic_index_map<size_t, size_t> m;
   ASSERT_EQ(m.find(0), m.end());
@@ -134,3 +139,5 @@ TEST_F(DenseDynamicIndexMapFixture, ReverseIterate) {
   using namespace ::testing;
   ASSERT_THAT(v, ElementsAre(Pair(5, 5), Pair(2, 2), Pair(1, 1)));
 }
+
+#pragma GCC diagnostic pop
