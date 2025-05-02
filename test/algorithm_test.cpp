@@ -153,3 +153,95 @@ TEST_F(AlgorithmCountingFixture, PartitionTransform) {
   EXPECT_THAT(boost::make_iterator_range(std::next(vec.begin(), 5), vec.end()),
               testing::UnorderedElementsAre(1, 3, 5, 7, 9));
 }
+
+TEST(Merge, Merge) {
+  {
+    std::vector<size_t> v1{2, 4, 6, 8};
+    std::vector<size_t> v2{1, 3, 5, 7};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8));
+  }
+
+  {
+    std::vector<size_t> v1{1, 3, 5, 7};
+    std::vector<size_t> v2{2, 4, 6, 8};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8));
+  }
+
+  {
+    std::vector<size_t> v1{2, 4, 6, 8};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(2, 4, 6, 8));
+  }
+
+  {
+    std::vector<size_t> v1{2, 4, 6, 8, 10, 12};
+    std::vector<size_t> v2{1, 3, 5, 7};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 10, 12));
+  }
+
+  {
+    std::vector<size_t> v1{2, 4, 6, 8};
+    std::vector<size_t> v2{};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(2, 4, 6, 8));
+  }
+
+  {
+    std::vector<size_t> v1{};
+    std::vector<size_t> v2{1, 3, 5, 7};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(1, 3, 5, 7));
+  }
+
+  {
+    std::vector<size_t> v1{};
+    std::vector<size_t> v2{};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre());
+  }
+
+  {
+    std::vector<size_t> v1{1, 4, 7, 10};
+    std::vector<size_t> v2{2, 5, 8, 11};
+    std::vector<size_t> v3{3, 6, 9, 12};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v3, v1, v2);
+
+    ASSERT_THAT(out,
+                ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
+  }
+  {
+    std::vector<size_t> v1{1, 2, 5, 6};
+    std::vector<size_t> v2{3, 4, 7, 8};
+    std::vector<size_t> out;
+
+    misc::merge(std::less<>{}, std::back_inserter(out), v1, v2);
+
+    ASSERT_THAT(out, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8));
+  }
+}
