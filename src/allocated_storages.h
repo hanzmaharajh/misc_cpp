@@ -125,8 +125,11 @@ class allocated_storages {
     auto round_up = total_size % arr_alignment;
     if (round_up > 0) round_up = arr_alignment - round_up;
 
-    m_memory.reset(reinterpret_cast<std::byte*>(
-        std::aligned_alloc(arr_alignment, total_size + round_up)));
+    if (total_size + round_up > 0)
+      m_memory.reset(reinterpret_cast<std::byte*>(
+          std::aligned_alloc(arr_alignment, total_size + round_up)));
+    else
+      m_memory.reset();
   }
 };
 

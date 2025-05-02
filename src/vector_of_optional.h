@@ -22,6 +22,7 @@ template <typename T>
 class VectorOfOptional {
  protected:
   size_t curr_size = 0;
+  allocated_storages<details::octet, T> storages;
 
   static constexpr size_t BITS_STORE_IND = 0;
   static constexpr size_t DATA_STORE_IND = 1;
@@ -32,8 +33,6 @@ class VectorOfOptional {
     std::fill(bits_range.begin(), bits_range.end(), details::octet{0x00});
     return storages;
   }
-
-  allocated_storages<details::octet, T> storages;
 
   T* data() {
     return reinterpret_cast<T*>(
@@ -197,7 +196,7 @@ class VectorOfOptional {
 
   VectorOfOptional() noexcept : curr_size{0}, storages{make_storages(0)} {}
 
-  VectorOfOptional(const VectorOfOptional& o) 
+  VectorOfOptional(const VectorOfOptional& o)
       : storages{make_storages(o.size())} {
     resize(o.size());
     for (size_t i = 0; i < o.size(); ++i) {
@@ -209,10 +208,8 @@ class VectorOfOptional {
     }
   };
 
-  VectorOfOptional(VectorOfOptional&& o)  : storages{make_storages(0)} {
-    using std::swap;
-    swap(o.storages, storages);
-    swap(o.curr_size, curr_size);
+  VectorOfOptional(VectorOfOptional&& o) : storages{make_storages(0)} {
+    swap(o);
   }
 
   VectorOfOptional& operator=(const VectorOfOptional& o) noexcept {
@@ -226,6 +223,12 @@ class VectorOfOptional {
   VectorOfOptional& operator=(VectorOfOptional&& o) noexcept = default;
 
   ~VectorOfOptional() { destroy_arr_elements(storages); };
+
+  void swap(VectorOfOptional& o) noexcept {
+    using std::swap;
+    swap(o.storages, storages);
+    swap(o.curr_size, curr_size);
+  }
 
   [[nodiscard]] friend bool operator==(const VectorOfOptional& lhs,
                                        const VectorOfOptional& rhs) {
@@ -343,7 +346,8 @@ class VectorOfOptional {
   void reset(size_t pos) {
     if (is_set(pos)) {
       reset_bit(pos);
-      std::destroy_at(data() + pos);
+      if (const auto* arr = data())
+        std::destroy_at(arr + pos);
     }
   }
 

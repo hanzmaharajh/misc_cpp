@@ -35,6 +35,11 @@ include(cmake/StaticAnalyzers.cmake)
 
 find_package(Boost 1.74 REQUIRED)
 
+message(STATUS "Boost version: ${Boost_VERSION_STRING}")
+message(STATUS "Boost library directory: ${Boost_LIBRARY_DIRS}")
+message(STATUS "Boost include directory: ${Boost_INCLUDE_DIRS}")
+
+
 target_include_directories(project_options SYSTEM INTERFACE ${Boost_INCLUDE_DIR})
 
 option(ENABLE_TESTING "Enable Test Builds" ON)

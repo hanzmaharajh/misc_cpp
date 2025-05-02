@@ -6,6 +6,11 @@
 #include <memory>
 #include <string>
 
+
+// TODO Sort this out. There's an issue with the iterators.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
+
 TEST(DenseDynamicIndexMap, ConstructDefault) {
   misc::dense_dynamic_index_map<size_t, size_t> m;
   ASSERT_EQ(m.find(0), m.end());
@@ -53,8 +58,10 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceNewMid) {
   ASSERT_EQ(emplaced, true);
   ASSERT_NE(it, begin());
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 3);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 3);
 
   const auto next = std::next(it);
   ASSERT_EQ(next, find(5));
@@ -68,8 +75,10 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceNewEnd) {
   ASSERT_EQ(emplaced, true);
   ASSERT_NE(it, begin());
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 6);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 6);
 
   const auto next = std::next(it);
   ASSERT_EQ(next, end());
@@ -83,8 +92,10 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceExisting) {
   ASSERT_EQ(emplaced, false);
   ASSERT_EQ(it, begin());
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 1);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 1);
 }
 
 TEST_F(DenseDynamicIndexMapFixture, ReassignElement) {
@@ -92,8 +103,10 @@ TEST_F(DenseDynamicIndexMapFixture, ReassignElement) {
   el = std::make_shared<int>(1000);
   const auto it = find(1);
   ASSERT_NE(it, end());
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 1000);
+
+  const auto& r = it->second;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 1000);
 }
 
 TEST_F(DenseDynamicIndexMapFixture, Erase) {
@@ -126,3 +139,5 @@ TEST_F(DenseDynamicIndexMapFixture, ReverseIterate) {
   using namespace ::testing;
   ASSERT_THAT(v, ElementsAre(Pair(5, 5), Pair(2, 2), Pair(1, 1)));
 }
+
+#pragma GCC diagnostic pop

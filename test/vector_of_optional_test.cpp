@@ -40,10 +40,16 @@ TEST_F(VectorOfOptionalSingleFixture, Basic) {
 
 TEST_F(VectorOfOptionalSingleFixture, Iterators) {
   ASSERT_NE(begin(), end());
-  ASSERT_EQ(*begin()->get(), 10);
+
+  const auto& b = *begin();
+  ASSERT_NE(b, nullptr);
+
+  const auto& r = *b;
+  ASSERT_NE(r, nullptr);
+  ASSERT_EQ(*r, 10);
+  
   ASSERT_EQ(++begin(), end());
-  const auto& b = begin()++;
-  ASSERT_EQ(b, end());
+  ASSERT_EQ(begin()++, end());
   ASSERT_EQ(begin(), --end());
   const auto& e = end()--;
   ASSERT_EQ(e, begin());
@@ -77,8 +83,10 @@ TEST_F(VectorOfOptionalSingleFixture, ResizeBigger) {
   resize(2);
   ASSERT_EQ(size(), 2);
   ASSERT_EQ(capacity(), 2);
-  ASSERT_NE(nullptr, this->operator[](0));
-  ASSERT_EQ(ptr_10, *this->operator[](0));
+
+  const auto* r = this->operator[](0);
+  ASSERT_NE(nullptr, r);
+  ASSERT_EQ(ptr_10, *r);
   ASSERT_EQ(nullptr, this->operator[](1));
 }
 

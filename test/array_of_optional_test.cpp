@@ -31,13 +31,15 @@ TEST_F(StaticArrCountingFixture, Emplace) {
     misc::ArrayOfOptional<TestElement, 10> arr;
     arr.emplace(3);
 
-    ASSERT_NE(arr[3], nullptr);
-    EXPECT_EQ(arr[3]->v, 0);
+    const auto* r3 = arr[3];
+    ASSERT_NE(r3, nullptr);
+    EXPECT_EQ(r3->v, 0);
 
     arr.emplace(4, size_t{7});
 
-    ASSERT_NE(arr[4], nullptr);
-    EXPECT_EQ(arr[4]->v, 7);
+    const auto* r4 = arr[4];
+    ASSERT_NE(r4, nullptr);
+    EXPECT_EQ(r4->v, 7);
   }
   EXPECT_EQ(call_counts.constructor_calls, 2);
   EXPECT_EQ(call_counts.placement_new_calls, 2);
@@ -47,8 +49,9 @@ TEST_F(StaticArrCountingFixture, Fill) {
   misc::ArrayOfOptional<TestElement, 10> arr;
   arr.fill(TestElement(5));
   for (size_t i = 0; i < arr.size(); ++i) {
-    ASSERT_NE(arr[i], nullptr);
-    EXPECT_EQ(arr[i]->v, 5);
+    const auto* r = arr[i];
+    ASSERT_NE(r, nullptr);
+    EXPECT_EQ(r->v, 5);
   }
   EXPECT_EQ(call_counts.constructor_calls, 1 /* Fill element */ + 10);
 }
@@ -60,16 +63,18 @@ TEST_F(StaticArrCountingFixture, IterateRead) {
   }
   size_t ind = 0;
   for (auto i = arr.begin(); i != arr.end(); ++i) {
-    ASSERT_NE(*i, nullptr);
-    EXPECT_EQ((*i)->v, ind++);
+    const auto* r = *i;
+    ASSERT_NE(r, nullptr);
+    EXPECT_EQ((r)->v, ind++);
   }
 }
 
 TEST_F(StaticArrSingleElementFixture_3_7, ReFill) {
   arr.fill(TestElement(5));
   for (size_t i = 0; i < arr.size(); ++i) {
-    ASSERT_NE(arr[i], nullptr);
-    EXPECT_EQ(arr[i]->v, 5);
+    const auto* r = arr[i];
+    ASSERT_NE(r, nullptr);
+    EXPECT_EQ(r->v, 5);
   }
   EXPECT_EQ(call_counts.constructor_calls, 1       /* Initial Element */
                                                + 1 /* Fill element */
@@ -110,8 +115,10 @@ TEST_F(StaticArrSingleElementFixture_3_7, ReEmplace) {
 
   // Ensure the previous was destroyed
   EXPECT_EQ(call_counts.destructor_calls, 1);
-  ASSERT_NE(arr[3], nullptr);
-  EXPECT_EQ(arr[3]->v, 11);
+
+  const auto* r = arr[3];
+  ASSERT_NE(r, nullptr);
+  EXPECT_EQ(r->v, 11);
   EXPECT_EQ(call_counts.constructor_calls, 2);
 }
 
@@ -125,8 +132,9 @@ TEST_F(StaticArrSingleElementFixture_3_7, Erase) {
 TEST_F(StaticArrSingleElementFixture_3_7, CopyConstruct) {
   auto arr_copy = arr;
 
-  ASSERT_NE(arr_copy[3], nullptr);
-  EXPECT_EQ(arr_copy[3]->v, 7);
+  const auto* r = arr_copy[3];
+  ASSERT_NE(r, nullptr);
+  EXPECT_EQ(r->v, 7);
   EXPECT_EQ(call_counts.constructor_calls, 2);
   EXPECT_EQ(call_counts.copy_constructor_calls, 1);
 }
@@ -135,8 +143,9 @@ TEST_F(StaticArrSingleElementFixture_3_7, CopyAssign) {
   misc::ArrayOfOptional<TestElement, 10> arr_copy;
   arr_copy = arr;
 
-  ASSERT_NE(arr_copy[3], nullptr);
-  EXPECT_EQ(arr_copy[3]->v, 7);
+  const auto* r = arr_copy[3];
+  ASSERT_NE(r, nullptr);
+  EXPECT_EQ(r->v, 7);
   EXPECT_EQ(call_counts.constructor_calls, 2);
   EXPECT_EQ(call_counts.copy_constructor_calls, 1);
 }
@@ -144,8 +153,9 @@ TEST_F(StaticArrSingleElementFixture_3_7, CopyAssign) {
 TEST_F(StaticArrSingleElementFixture_3_7, MoveConstruct) {
   auto arr_copy = std::move(arr);
 
-  ASSERT_NE(arr_copy[3], nullptr);
-  EXPECT_EQ(arr_copy[3]->v, 7);
+  const auto* r = arr_copy[3];
+  ASSERT_NE(r, nullptr);
+  EXPECT_EQ(r->v, 7);
   EXPECT_EQ(call_counts.constructor_calls, 2);
   EXPECT_EQ(call_counts.move_constructor_calls, 1);
 }
@@ -154,8 +164,9 @@ TEST_F(StaticArrSingleElementFixture_3_7, MoveAssign) {
   misc::ArrayOfOptional<TestElement, 10> arr_copy;
   arr_copy = std::move(arr);
 
-  ASSERT_NE(arr_copy[3], nullptr);
-  EXPECT_EQ(arr_copy[3]->v, 7);
+  const auto* r = arr_copy[3];
+  ASSERT_NE(r, nullptr);
+  EXPECT_EQ(r->v, 7);
   EXPECT_EQ(call_counts.constructor_calls, 2);
   EXPECT_EQ(call_counts.move_constructor_calls, 1);
 }
