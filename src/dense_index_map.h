@@ -52,8 +52,7 @@ class dense_dynamic_index_map
     pointer operator->() const { return arr.base_type::operator[](ind); }
 
     iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     iterator operator++(int) {
@@ -62,8 +61,7 @@ class dense_dynamic_index_map
       return retval;
     }
     iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     iterator operator--(int) {
@@ -103,8 +101,7 @@ class dense_dynamic_index_map
     pointer operator->() const { return arr.base_type::operator[](ind); }
 
     const_iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     const_iterator operator++(int) {
@@ -113,8 +110,7 @@ class dense_dynamic_index_map
       return retval;
     }
     const_iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     const_iterator operator--(int) {
@@ -149,7 +145,7 @@ class dense_dynamic_index_map
 
   [[nodiscard]] const_iterator find(const Key& key) const {
     const auto ind = index_map(key);
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return const_iterator{ind, *this};
     }
     return end();
@@ -157,20 +153,20 @@ class dense_dynamic_index_map
 
   [[nodiscard]] iterator find(const Key& key) {
     const auto ind = index_map(key);
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return iterator{ind, *this};
     }
     return end();
   }
 
   const_iterator erase(const_iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
 
     base_type::erase(it.ind);
     return it++;
   }
   iterator erase(iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
     base_type::erase(it.ind);
     return it++;
   }
@@ -195,7 +191,7 @@ class dense_dynamic_index_map
   std::pair<iterator, bool> emplace(const Key& key, Args&&... args) {
     const auto ind = index_map(key);
     if (ind < base_type::size()) {
-      if (this->is_set(ind)) {
+      if (is_present(ind)) {
         return {{ind, *this}, false};
       }
       base_type::emplace_at(ind, key, std::forward<Args>(args)...);
@@ -211,6 +207,8 @@ class dense_dynamic_index_map
   }
 
   void reserve(size_t s) { base_type::reserve(s); }
+private:
+  bool is_present(size_t ind) const { return ind < base_type::size() && this->is_set(ind); }
 };
 
 template <typename Value>
@@ -251,24 +249,25 @@ class dense_dynamic_index_map<size_t, Value, identity>
     }
 
     reference operator*() {
-      return reference{ind, *arr.base_type::operator[](ind)};
+      return reference { ind, *arr.base_type::operator[](ind) };
     }
     const_reference operator*() const {
-      return const_reference{ind, *arr.base_type::operator[](ind)};
+      return const_reference { ind, *arr.base_type::operator[](ind) };
     }
 
     pointer operator->() {
-      return wrapper{
-          std::pair<const Key, Value&>{ind, *arr.base_type::operator[](ind)}};
+      return wrapper {
+        std::pair<const Key, Value&>{ind, *arr.base_type::operator[](ind)}
+      };
     }
     const_pointer operator->() const {
-      return const_wrapper{std::pair<const Key, const Value&>{
-          ind, *arr.base_type::operator[](ind)}};
+      return const_wrapper {
+        std::pair<const Key, const Value&>{ind, *arr.base_type::operator[](ind)}
+      };
     }
 
     iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     iterator operator++(int) {
@@ -277,8 +276,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
       return retval;
     }
     iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     iterator operator--(int) {
@@ -322,15 +320,14 @@ class dense_dynamic_index_map<size_t, Value, identity>
     }
 
     reference operator*() const {
-      return {ind, *arr.base_type::operator[](ind)};
+      return { ind, *arr.base_type::operator[](ind) };
     }
     pointer operator->() const {
-      return wrapper{std::pair{ind, arr.base_type::operator[](ind)}};
+      return wrapper { std::pair{ind, arr.base_type::operator[](ind)} };
     }
 
     const_iterator& operator++() {
-      while (ind != arr.base_type::size() && !arr.is_set(++ind))
-        ;
+      while (ind != arr.base_type::size() && !arr.is_set(++ind));
       return *this;
     }
     const_iterator operator++(int) {
@@ -339,8 +336,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
       return retval;
     }
     const_iterator& operator--() {
-      while (ind != 0 && !arr.is_set(--ind))
-        ;
+      while (ind != 0 && !arr.is_set(--ind));
       return *this;
     }
     const_iterator operator--(int) {
@@ -375,7 +371,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
 
   [[nodiscard]] const_iterator find(const Key& key) const {
     const auto ind = key;
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return const_iterator{ind, *this};
     }
     return end();
@@ -383,20 +379,20 @@ class dense_dynamic_index_map<size_t, Value, identity>
 
   [[nodiscard]] iterator find(const Key& key) {
     const auto ind = key;
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return iterator{ind, *this};
     }
     return end();
   }
 
   const_iterator erase(const_iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
 
     base_type::erase(it.ind);
     return it++;
   }
   iterator erase(iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
     base_type::erase(it.ind);
     return it++;
   }
@@ -421,7 +417,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
   std::pair<iterator, bool> emplace(const Key& key, Args&&... args) {
     const auto ind = key;
     if (ind < base_type::size()) {
-      if (this->is_set(ind)) {
+      if (is_present(ind)) {
         return {{ind, *this}, false};
       }
       base_type::emplace_at(ind, std::forward<Args>(args)...);
@@ -437,6 +433,8 @@ class dense_dynamic_index_map<size_t, Value, identity>
   }
 
   void reserve(size_t s) { base_type::reserve(s); }
+  private:
+  bool is_present(size_t ind) const { return ind < base_type::size() && this->is_set(ind); }
 };
 
 }  // namespace misc

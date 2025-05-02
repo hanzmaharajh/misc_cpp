@@ -304,4 +304,22 @@ auto merge(Comp comp, OutItr o_it, const Args&... args) {
   return o_it;
 }
 
+// Returns true if all elements of the second sorted input range are contained
+// in the first. False, otherwise.
+template <class Iter1, class Iter2, class Comp = std::less<>>
+bool is_subset(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
+               Comp&& comp = Comp()) {
+  while (first1 != last1 && first2 != last2) {
+    if (comp(*first1, *first2)) {
+      return false;
+    } else if (comp(*first2, *first1)) {
+      ++first2;
+    } else {
+      ++first1;
+    }
+  }
+
+  return first1 == last1;
+}
+
 }  // namespace misc

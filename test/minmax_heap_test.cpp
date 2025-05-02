@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <minmax_heap.h>
-#include <algorithm>
 
+#include <algorithm>
 
 using namespace misc;
 
@@ -189,4 +189,23 @@ TEST_F(MinMaxHeapNoCopyFixture, copy_construct) {
   EXPECT_EQ(vec, m_heap);
   EXPECT_TRUE(std::all_of(vec.begin(), vec.end(),
                           [](const auto& cc) { return cc.copies == 1; }));
+}
+
+TEST(MinMaxHeap, AlternatingInsertRemove) {
+  minmax_heap<int> h;
+  for (int i = 0; i < 100; ++i) h.push(i);
+  for (int i = 0; i < 50; ++i) h.pop_front();
+  EXPECT_EQ(h.front(), 50);
+  for (int i = 0; i < 25; ++i) h.pop_back();
+  EXPECT_EQ(h.back(), 74);
+}
+
+TEST(MinMaxHeap, HandlesLargeInput) {
+  minmax_heap<int> h;
+  const int N = 1'000'000;
+  for (int i = 0; i < N; ++i) h.push(N - i);
+  EXPECT_EQ(h.front(), 1);
+  EXPECT_EQ(h.back(), N);
+  for (int i = 0; i < 500'000; ++i) h.pop_front();
+  EXPECT_EQ(h.front(), 500'001);
 }

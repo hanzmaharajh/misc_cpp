@@ -23,11 +23,11 @@ class ArrayOfOptional {
   template <typename Array>
   void copy_to_empty_arr(Array&& o) {
     for (size_t i = 0; i < size(); ++i) {
-      if (o.is_set[i]) {
+      if (auto* ptr = o[i]) {
         if constexpr (std::is_rvalue_reference_v<decltype(o)>) {
-          new (data() + i) T(std::move(*o[i]));
+          new (data() + i) T(std::move(*ptr));
         } else {
-          new (data() + i) T(*o[i]);
+          new (data() + i) T(*ptr);
         }
       }
     }
@@ -111,6 +111,12 @@ class ArrayOfOptional {
   }
 
   ~ArrayOfOptional() { clear(); }
+
+  void swap(ArrayOfOptional& o) noexcept {
+    using std::swap;
+    swap(is_set, o.is_set);
+    swap(storage, o.storage);
+  }
 
   [[nodiscard]] friend bool operator==(const ArrayOfOptional& lhs,
                                        const ArrayOfOptional& rhs) {

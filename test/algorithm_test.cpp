@@ -7,9 +7,53 @@
 #include <boost/range.hpp>
 #include <functional>
 #include <iterator>
+#include <list>
 #include <vector>
 
 #include "test.h"
+
+struct SetIntersectTest
+    : public testing::TestWithParam<
+          std::tuple<std::vector<int>, std::list<int>, bool>> {};
+
+TEST_P(SetIntersectTest, intersect) {
+  const auto& [l, r, expected] = GetParam();
+  const auto result =
+      misc::sets_intersect(l.begin(), l.end(), r.begin(), r.end());
+  EXPECT_EQ(expected, result);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    intersect, SetIntersectTest,
+    testing::Values(
+        std::make_tuple(std::vector<int>{}, std::list<int>{}, false),
+        std::make_tuple(std::vector<int>{1}, std::list<int>{1}, true),
+        std::make_tuple(std::vector<int>{1, 2, 3}, std::list<int>{2}, true),
+        std::make_tuple(std::vector<int>{1, 2, 3}, std::list<int>{}, false),
+        std::make_tuple(std::vector<int>{1, 2, 3}, std::list<int>{4}, false)));
+
+struct SetIsSubsetTest
+    : public testing::TestWithParam<
+          std::tuple<std::vector<int>, std::list<int>, bool>> {};
+
+TEST_P(SetIsSubsetTest, is_subset) {
+  const auto& [l, r, expected] = GetParam();
+  const auto result = misc::is_subset(l.begin(), l.end(), r.begin(), r.end());
+  EXPECT_EQ(expected, result);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    is_subset, SetIsSubsetTest,
+    testing::Values(
+        std::make_tuple(std::vector<int>{}, std::list<int>{}, true),
+        std::make_tuple(std::vector<int>{1}, std::list<int>{1}, true),
+        std::make_tuple(std::vector<int>{2}, std::list<int>{1, 2, 3}, true),
+        std::make_tuple(std::vector<int>{}, std::list<int>{1, 2, 3}, true),
+        std::make_tuple(std::vector<int>{4}, std::list<int>{1, 2, 3}, false),
+        std::make_tuple(std::vector<int>{1, 4}, std::list<int>{1, 2, 3}, false),
+        std::make_tuple(std::vector<int>{1, 3}, std::list<int>{1, 2, 4}, false),
+        std::make_tuple(std::vector<int>{2, 3}, std::list<int>{1, 2, 4},
+                        false)));
 
 TEST(transform_sort, sort) {
   ::testing::MockFunction<int(int)> inverse;
