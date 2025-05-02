@@ -145,7 +145,7 @@ class dense_dynamic_index_map
 
   [[nodiscard]] const_iterator find(const Key& key) const {
     const auto ind = index_map(key);
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return const_iterator{ind, *this};
     }
     return end();
@@ -153,20 +153,20 @@ class dense_dynamic_index_map
 
   [[nodiscard]] iterator find(const Key& key) {
     const auto ind = index_map(key);
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return iterator{ind, *this};
     }
     return end();
   }
 
   const_iterator erase(const_iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
 
     base_type::erase(it.ind);
     return it++;
   }
   iterator erase(iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
     base_type::erase(it.ind);
     return it++;
   }
@@ -191,7 +191,7 @@ class dense_dynamic_index_map
   std::pair<iterator, bool> emplace(const Key& key, Args&&... args) {
     const auto ind = index_map(key);
     if (ind < base_type::size()) {
-      if (this->is_set(ind)) {
+      if (is_present(ind)) {
         return {{ind, *this}, false};
       }
       base_type::emplace_at(ind, key, std::forward<Args>(args)...);
@@ -207,6 +207,8 @@ class dense_dynamic_index_map
   }
 
   void reserve(size_t s) { base_type::reserve(s); }
+private:
+  bool is_present(size_t ind) const { return ind < base_type::size() && this->is_set(ind); }
 };
 
 template <typename Value>
@@ -369,7 +371,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
 
   [[nodiscard]] const_iterator find(const Key& key) const {
     const auto ind = key;
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return const_iterator{ind, *this};
     }
     return end();
@@ -377,20 +379,20 @@ class dense_dynamic_index_map<size_t, Value, identity>
 
   [[nodiscard]] iterator find(const Key& key) {
     const auto ind = key;
-    if (this->is_set(ind)) {
+    if (is_present(ind)) {
       return iterator{ind, *this};
     }
     return end();
   }
 
   const_iterator erase(const_iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
 
     base_type::erase(it.ind);
     return it++;
   }
   iterator erase(iterator it) {
-    if (!this->is_set(it.ind)) return end();
+    if (!is_present(it.ind)) return end();
     base_type::erase(it.ind);
     return it++;
   }
@@ -415,7 +417,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
   std::pair<iterator, bool> emplace(const Key& key, Args&&... args) {
     const auto ind = key;
     if (ind < base_type::size()) {
-      if (this->is_set(ind)) {
+      if (is_present(ind)) {
         return {{ind, *this}, false};
       }
       base_type::emplace_at(ind, std::forward<Args>(args)...);
@@ -431,6 +433,8 @@ class dense_dynamic_index_map<size_t, Value, identity>
   }
 
   void reserve(size_t s) { base_type::reserve(s); }
+  private:
+  bool is_present(size_t ind) const { return ind < base_type::size() && this->is_set(ind); }
 };
 
 }  // namespace misc
