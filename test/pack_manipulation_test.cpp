@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <pack_manipulation.h>
+#include <misc/pack_manipulation.h>
 
 TEST(pack, transform_each) {
   const auto identity = [](const auto& v) { return v; };

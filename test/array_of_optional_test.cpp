@@ -1,6 +1,6 @@
-#include <array_of_optional.h>
-#include <dense_index_map.h>
 #include <gtest/gtest.h>
+#include <misc/array_of_optional.h>
+#include <misc/dense_index_map.h>
 
 #include <optional>
 #include <string_view>
@@ -10,14 +10,14 @@
 using StaticArrCountingFixture = SpecMemberCountingFixture;
 
 struct StaticArrSingleElementFixture_3_7 : public StaticArrCountingFixture {
-  misc::ArrayOfOptional<TestElement, 10> arr;
+  misc::array_of_optional<TestElement, 10> arr;
 
   StaticArrSingleElementFixture_3_7() { arr.emplace(3, size_t{7}); }
 };
 
 TEST_F(StaticArrCountingFixture, DefaultConstruct) {
   {
-    misc::ArrayOfOptional<TestElement, 10> arr;
+    misc::array_of_optional<TestElement, 10> arr;
     ASSERT_EQ(arr.size(), 10);
     for (size_t i = 0; i < arr.size(); ++i) {
       EXPECT_EQ(arr[i], nullptr);
@@ -28,7 +28,7 @@ TEST_F(StaticArrCountingFixture, DefaultConstruct) {
 
 TEST_F(StaticArrCountingFixture, Emplace) {
   {
-    misc::ArrayOfOptional<TestElement, 10> arr;
+    misc::array_of_optional<TestElement, 10> arr;
     arr.emplace(3);
 
     const auto* r3 = arr[3];
@@ -46,7 +46,7 @@ TEST_F(StaticArrCountingFixture, Emplace) {
 }
 
 TEST_F(StaticArrCountingFixture, Fill) {
-  misc::ArrayOfOptional<TestElement, 10> arr;
+  misc::array_of_optional<TestElement, 10> arr;
   arr.fill(TestElement(5));
   for (size_t i = 0; i < arr.size(); ++i) {
     const auto* r = arr[i];
@@ -57,7 +57,7 @@ TEST_F(StaticArrCountingFixture, Fill) {
 }
 
 TEST_F(StaticArrCountingFixture, IterateRead) {
-  misc::ArrayOfOptional<TestElement, 10> arr;
+  misc::array_of_optional<TestElement, 10> arr;
   for (size_t i = 0; i < arr.size(); ++i) {
     arr.emplace(i, i);
   }
@@ -90,7 +90,7 @@ TEST_F(StaticArrSingleElementFixture_3_7, Clear) {
 }
 
 TEST_F(StaticArrSingleElementFixture_3_7, EqualTrue) {
-  misc::ArrayOfOptional<TestElement, 10> arr2;
+  misc::array_of_optional<TestElement, 10> arr2;
   arr2.emplace(3, size_t{7});
 
   EXPECT_EQ(arr, arr2);
@@ -98,7 +98,7 @@ TEST_F(StaticArrSingleElementFixture_3_7, EqualTrue) {
 }
 
 TEST_F(StaticArrSingleElementFixture_3_7, EqualFalse) {
-  misc::ArrayOfOptional<TestElement, 10> arr2;
+  misc::array_of_optional<TestElement, 10> arr2;
 
   EXPECT_NE(arr, arr2);
   EXPECT_FALSE(arr == arr2);
@@ -140,7 +140,7 @@ TEST_F(StaticArrSingleElementFixture_3_7, CopyConstruct) {
 }
 
 TEST_F(StaticArrSingleElementFixture_3_7, CopyAssign) {
-  misc::ArrayOfOptional<TestElement, 10> arr_copy;
+  misc::array_of_optional<TestElement, 10> arr_copy;
   arr_copy = arr;
 
   const auto* r = arr_copy[3];
@@ -161,7 +161,7 @@ TEST_F(StaticArrSingleElementFixture_3_7, MoveConstruct) {
 }
 
 TEST_F(StaticArrSingleElementFixture_3_7, MoveAssign) {
-  misc::ArrayOfOptional<TestElement, 10> arr_copy;
+  misc::array_of_optional<TestElement, 10> arr_copy;
   arr_copy = std::move(arr);
 
   const auto* r = arr_copy[3];

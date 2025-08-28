@@ -10,10 +10,10 @@
 namespace misc {
 
 template <typename T, size_t N>
-class ArrayOfOptional {
+class array_of_optional {
  protected:
   std::bitset<N> is_set{};
-  std::aligned_storage_t<sizeof(T), alignof(T[])> storage[N];
+  std::aligned_storage_t<sizeof(T), alignof(T)> storage[N];
 
   [[nodiscard]] T* data() { return reinterpret_cast<T*>(storage); }
   [[nodiscard]] const T* data() const {
@@ -42,7 +42,7 @@ class ArrayOfOptional {
     using pointer = const T**;
     using reference = const T*;
 
-    const_iterator(size_t index, const ArrayOfOptional& arro)
+    const_iterator(size_t index, const array_of_optional& arro)
         : ind(index), arr(arro) {}
 
     reference operator*() const { return arr[ind]; }
@@ -83,18 +83,18 @@ class ArrayOfOptional {
 
    private:
     size_t ind;
-    const ArrayOfOptional& arr;
+    const array_of_optional& arr;
   };
 
-  ArrayOfOptional() noexcept = default;
+  array_of_optional() noexcept = default;
 
-  ArrayOfOptional(const ArrayOfOptional& o) noexcept { copy_to_empty_arr(o); }
+  array_of_optional(const array_of_optional& o) noexcept { copy_to_empty_arr(o); }
 
-  ArrayOfOptional(ArrayOfOptional&& o) noexcept {
+  array_of_optional(array_of_optional&& o) noexcept {
     copy_to_empty_arr(std::move(o));
   }
 
-  ArrayOfOptional& operator=(const ArrayOfOptional& o) noexcept {
+  array_of_optional& operator=(const array_of_optional& o) noexcept {
     if (&o != this) {
       clear();
       copy_to_empty_arr(o);
@@ -102,7 +102,7 @@ class ArrayOfOptional {
     return *this;
   }
 
-  ArrayOfOptional& operator=(ArrayOfOptional&& o) noexcept {
+  array_of_optional& operator=(array_of_optional&& o) noexcept {
     if (&o != this) {
       clear();
       copy_to_empty_arr(std::move(o));
@@ -110,16 +110,16 @@ class ArrayOfOptional {
     return *this;
   }
 
-  ~ArrayOfOptional() { clear(); }
+  ~array_of_optional() { clear(); }
 
-  void swap(ArrayOfOptional& o) noexcept {
+  void swap(array_of_optional& o) noexcept {
     using std::swap;
     swap(is_set, o.is_set);
     swap(storage, o.storage);
   }
 
-  [[nodiscard]] friend bool operator==(const ArrayOfOptional& lhs,
-                                       const ArrayOfOptional& rhs) {
+  [[nodiscard]] friend bool operator==(const array_of_optional& lhs,
+                                       const array_of_optional& rhs) {
     if (lhs.is_set != rhs.is_set) {
       return false;
     }
@@ -133,8 +133,8 @@ class ArrayOfOptional {
     return true;
   }
 
-  [[nodiscard]] friend bool operator!=(const ArrayOfOptional& lhs,
-                                       const ArrayOfOptional& rhs) {
+  [[nodiscard]] friend bool operator!=(const array_of_optional& lhs,
+                                       const array_of_optional& rhs) {
     return !(lhs == rhs);
   }
 
@@ -143,7 +143,7 @@ class ArrayOfOptional {
   }
 
   [[nodiscard]] const T* operator[](size_t pos) const {
-    return const_cast<ArrayOfOptional*>(this)->operator[](pos);
+    return const_cast<array_of_optional*>(this)->operator[](pos);
   }
 
   template <typename... Args>
