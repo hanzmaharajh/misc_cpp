@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <boost/algorithm/apply_permutation.hpp>
 #include <boost/scope_exit.hpp>
+#include <functional>
 #include <memory>
 #include <numeric>
 
@@ -284,7 +285,7 @@ auto merge(Comp comp, OutItr o_it, const Args&... args) {
 
   while (std::next(heap.begin()) != heap_end) {
     std::pop_heap(heap.begin(), heap_end, comp_func);
-    
+
     auto& [max_begin, max_end] = *std::prev(heap_end);
 
     do {
@@ -320,6 +321,61 @@ bool is_subset(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
   }
 
   return first1 == last1;
+}
+
+namespace details {
+struct all_of {};
+struct any_of {};
+
+template <typename O, typename Q>
+struct OpQuant {
+  using Op = O;
+  using Quantifier = Q;
+};
+}  // namespace details
+
+struct eq_any_of_t : details::OpQuant<std::equal_to<void>, details::any_of> {
+} eq_any_of;
+struct eq_all_of_t : details::OpQuant<std::equal_to<void>, details::all_of> {
+} eq_all_of;
+
+struct ne_any_of_t
+    : details::OpQuant<std::not_equal_to<void>, details::any_of> {
+} ne_any_of;
+struct ne_all_of_t
+    : details::OpQuant<std::not_equal_to<void>, details::all_of> {
+} ne_all_of;
+
+struct gt_any_of_t : details::OpQuant<std::greater<void>, details::any_of> {
+} gt_any_of;
+struct gt_all_of_t : details::OpQuant<std::greater<void>, details::all_of> {
+} gt_all_of;
+
+struct ge_any_of_t
+    : details::OpQuant<std::greater_equal<void>, details::any_of> {
+} ge_any_of;
+struct ge_all_of_t
+    : details::OpQuant<std::greater_equal<void>, details::all_of> {
+} ge_all_of;
+
+struct lt_any_of_t : details::OpQuant<std::less<void>, details::any_of> {
+} lt_any_of;
+struct lt_all_of_t : details::OpQuant<std::less<void>, details::all_of> {
+} lt_all_of;
+
+struct le_any_of_t : details::OpQuant<std::less_equal<void>, details::any_of> {
+} le_any_of;
+struct le_all_of_t : details::OpQuant<std::less_equal<void>, details::all_of> {
+} le_all_of;
+
+template <typename Lhs, typename Op, typename... Args>
+bool is(const Lhs& lhs, Op, const Args&... args) {
+  if constexpr (std::is_same_v<details::any_of, typename Op::Quantifier>)
+    return (typename Op::Op{}(lhs, args) || ...);
+  else if constexpr (std::is_same_v<details::all_of, typename Op::Quantifier>)
+    return (typename Op::Op{}(lhs, args) && ...);
+  else
+    static_assert(always_false_v<Op>, ".");
 }
 
 }  // namespace misc

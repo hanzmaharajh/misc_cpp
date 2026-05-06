@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <size_aware_cache.h>
+#include <misc/size_aware_cache.h>
 
 #include <chrono>
 #include <cmath>

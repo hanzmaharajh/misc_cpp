@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <tagged_ptr.h>
+#include <misc/tagged_ptr.h>
 
-#include "overloaded.h"
+#include <misc/overloaded.h>
 #include "test.h"
 
 TEST(tagged_ptr, Construct) {
