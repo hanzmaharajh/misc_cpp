@@ -166,7 +166,10 @@ class unique_arrays : public allocated_storages<Args...> {
 
   unique_arrays(const unique_arrays&) = delete;
   unique_arrays(unique_arrays&& o) noexcept
-      : Base{static_cast<Base&&>(std::move(o))} {}
+      : Base{static_cast<Base&&>(std::move(o))} {
+    o.m_first_span_len = 0;
+    o.m_other_spans.fill({0, 0});
+  }
 
   unique_arrays& operator=(const unique_arrays&) = delete;
   unique_arrays& operator=(unique_arrays&& o) noexcept {

@@ -329,17 +329,9 @@ class LRUCache {
   // to reset it to a valid state.
   LRUCache& operator=(LRUCache&&) = default;
 
-  const Value* fetch(const Key& k) const { return pro_fetch(k); }
-
   // NOTE: Although this returns a non-const pointer. The value's size will not
   // be calculated again. Take care not to alter its size.
   Value* fetch(const Key& k) { return pro_fetch(k); }
-
-  const Value& at(const Key& k) const {
-    const Value* v = fetch(k);
-    if (v) return *v;
-    throw std::out_of_range("Key not found in cache");
-  }
 
   // NOTE: Although this returns a non-const ref. The value's size will not
   // be calculated again. Take care not to alter its size.

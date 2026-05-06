@@ -91,7 +91,7 @@ class dense_dynamic_index_map
 
     friend class dense_dynamic_index_map;
 
-    const_iterator(iterator it) : ind(it.i), arr(it.arr) {}
+    const_iterator(iterator it) : ind(it.ind), arr(it.arr) {}
     const_iterator(size_t i, const dense_dynamic_index_map& map)
         : ind(i), arr(map) {
       while (ind != arr.base_type::size() && !arr.is_set(ind)) ++ind;
