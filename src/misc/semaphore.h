@@ -64,6 +64,9 @@ class semaphore_lock {
     m_sem.acquire(m_num);
   }
 
+  semaphore_lock(const semaphore_lock&) = delete;
+  semaphore_lock& operator=(const semaphore_lock&) = delete;
+
   ~semaphore_lock() { m_sem.release(m_num); }
 };
 

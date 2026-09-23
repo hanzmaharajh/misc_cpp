@@ -21,7 +21,7 @@ template <typename Iter, typename UnaryOperation, typename Compare>
 void transform_sort(Iter begin, Iter end, UnaryOperation&& op, Compare&& comp) {
   using Diff = typename std::iterator_traits<Iter>::difference_type;
   using T = typename std::iterator_traits<Iter>::value_type;
-  using Key = decltype(op(std::declval<T>()));
+  using Key = std::remove_cv_t<std::remove_reference_t<std::invoke_result_t<UnaryOperation&, T&>>>;
 
   const Diff length = std::distance(begin, end);
 
@@ -178,7 +178,6 @@ Func visit_range_permutations(Func func, Iter range_begin, Iter range_end,
 template <size_t Choose, typename Iter, typename Func>
 Func visit_permutations_with_replacement(Iter begin, Iter end, Func f) {
   assert(std::distance(begin, end) >= Choose);
-
   if constexpr (Choose == 0) {
     return std::move(f);
   } else {
@@ -217,7 +216,7 @@ void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
                          UnaryPred&& pred) {
   using Diff = typename std::iterator_traits<Iter>::difference_type;
   using T = typename std::iterator_traits<Iter>::value_type;
-  using Key = decltype(op(std::declval<T>()));
+  using Key = std::remove_cv_t<std::remove_reference_t<std::invoke_result_t<UnaryOperation&, T&>>>;
 
   const Diff length = std::distance(begin, end);
 
@@ -268,7 +267,7 @@ template <typename Comp, typename OutItr, typename... Args>
 auto merge(Comp comp, OutItr o_it, const Args&... args) {
   using ItrType = decltype(std::begin(std::get<0>(take_first<1>(args...))));
   using ItrPairType = std::pair<ItrType, ItrType>;
-  std::array<ItrPairType, sizeof...(Args) + 1> heap{
+  std::array<ItrPairType, sizeof...(Args)> heap{
       ItrPairType{std::begin(args), std::end(args)}...};
 
   auto heap_end = std::partition(heap.begin(), heap.end(), [](const auto& v) {
@@ -305,8 +304,8 @@ auto merge(Comp comp, OutItr o_it, const Args&... args) {
   return o_it;
 }
 
-// Returns true if all elements of the second sorted input range are contained
-// in the first. False, otherwise.
+// Returns true if all elements of the first sorted input range are contained
+// in the second. False, otherwise.
 template <class Iter1, class Iter2, class Comp = std::less<>>
 bool is_subset(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
                Comp&& comp = Comp()) {

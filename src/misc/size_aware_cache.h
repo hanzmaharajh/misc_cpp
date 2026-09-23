@@ -228,13 +228,6 @@ class LRUCache {
   }
 
   void pro_evict(size_t watermark) {
-    if (watermark == 0) {
-      // It's more efficient to clear(). (And the rest of procedure doesn't
-      // quite work for zero.)
-      clear();
-      return;
-    }
-
     if constexpr (CacheStrategy == CachingStrategy::LRU) {
       // We don't need to rank any scores with a normal LRU cache
       while (m_waterlevel > watermark) {
@@ -267,7 +260,7 @@ class LRUCache {
       const auto& score_func = [&](auto bucket_it, const auto& element) {
         // <Time in the cache> * <group-size that the bucket holds>
         return (now - element.last_access_time) *
-               (1 << std::distance(std::begin(m_buckets), bucket_it));
+               (size_t{1}  << std::distance(std::begin(m_buckets), bucket_it));
       };
 
       std::vector<Score> scores;
@@ -412,6 +405,8 @@ class LRUCache {
     for (auto&& bucket : m_buckets) {
       bucket.clear();
     }
+
+    m_keys_to_locators.clear();
     m_waterlevel = {};
   }
 

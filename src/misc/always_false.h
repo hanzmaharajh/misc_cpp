@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 namespace misc {
 
 template <class T>
