@@ -52,10 +52,10 @@ class allocated_storages {
     allocate_storage();
   }
 
-  allocated_storages(const allocated_storages&) = default;
+  allocated_storages(const allocated_storages&) = delete;
   allocated_storages(allocated_storages&&) = default;
 
-  allocated_storages& operator=(const allocated_storages&) = default;
+  allocated_storages& operator=(const allocated_storages&) = delete;
   allocated_storages& operator=(allocated_storages&&) = default;
 
   /// @brief Returns the array allocated for the type indexed by Ind
@@ -121,7 +121,7 @@ class allocated_storages {
     const auto total_size =
         last_offset + sizeof(nth_type<last_ind>) * last_arr_len;
 
-    constexpr const auto arr_alignment = alignof(nth_type<0>[]);
+    constexpr const auto arr_alignment = std::max({alignof(Args)...});
     auto round_up = total_size % arr_alignment;
     if (round_up > 0) round_up = arr_alignment - round_up;
 
@@ -173,9 +173,12 @@ class unique_arrays : public allocated_storages<Args...> {
 
   unique_arrays& operator=(const unique_arrays&) = delete;
   unique_arrays& operator=(unique_arrays&& o) noexcept {
-    Base::operator=(std::move(o));
-    o.m_first_span_len = 0;
-    o.m_other_spans.fill({0, 0});
+    if (&o != this) {
+      del_arrs(std::make_index_sequence<sizeof...(Args)>());
+      Base::operator=(std::move(o));
+      o.m_first_span_len = 0;
+      o.m_other_spans.fill({0, 0});
+    }
     return *this;
   };
 
@@ -203,7 +206,7 @@ class unique_arrays : public allocated_storages<Args...> {
       }
     } catch (...) {
       std::destroy(range.begin(), begin);
-      if constexpr (Ind > 0) del_arrs(std::make_index_sequence<Ind - 1>());
+      if constexpr (Ind > 0) del_arrs(std::make_index_sequence<Ind>());
       throw;
     }
   }

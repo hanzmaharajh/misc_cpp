@@ -25,6 +25,7 @@ class tagged_ptr {
   tagged_ptr(T* ptr, size_t tag)
       : m_ptr(reinterpret_cast<uintptr_t>(ptr) | tag) {
     assert((tag & ptr_mask) == 0);
+    assert((reinterpret_cast<uintptr_t>(ptr) & tag_mask) == 0);
   }
 
   [[nodiscard]] T* get() const {
@@ -74,8 +75,10 @@ class unique_tagged_ptr : private tagged_ptr<T> {
   }
   unique_tagged_ptr& operator=(const unique_tagged_ptr&) = delete;
   unique_tagged_ptr& operator=(unique_tagged_ptr&& o) {
+    reset(nullptr);
     this->m_ptr = o.m_ptr;
     o.m_ptr = 0;
+    return *this;
   }
   ~unique_tagged_ptr() { delete get(); }
 
@@ -103,8 +106,10 @@ class unique_tagged_ptr<T[]> : private tagged_ptr<T[]> {
   }
   unique_tagged_ptr& operator=(const unique_tagged_ptr&) = delete;
   unique_tagged_ptr& operator=(unique_tagged_ptr&& o) {
+    reset(nullptr);
     this->m_ptr = o.m_ptr;
     o.m_ptr = 0;
+    return *this;
   }
   ~unique_tagged_ptr() { delete[] get(); }
 

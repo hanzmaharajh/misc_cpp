@@ -120,6 +120,12 @@ class vector_of_optional {
     reference operator*() const { return arr[ind]; }
     pointer operator->() { return arr[ind]; }
 
+    const_iterator& operator+(difference_type diff) {
+      auto retval = *this;
+      retval += diff;
+      return retval;
+    }
+
     const_iterator& operator++() {
       ++ind;
       return *this;
@@ -128,6 +134,12 @@ class vector_of_optional {
     const_iterator operator++(int) {
       auto retval = *this;
       ++retval;
+      return retval;
+    }
+
+    const_iterator& operator-(difference_type diff) {
+      auto retval = *this;
+      retval -= diff;
       return retval;
     }
 

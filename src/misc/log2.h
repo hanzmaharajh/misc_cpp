@@ -4,7 +4,6 @@
 
 #include "always_false.h"
 
-namespace misc {
 #if __cplusplus >= 202002L
 #include <bit>
 #elif defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
@@ -13,6 +12,8 @@ namespace misc {
 #include <immintrin.h>
 #endif
 #endif
+
+namespace misc {
 
 template <typename T>
 [[nodiscard]] constexpr inline int log2(T i) {

@@ -47,14 +47,23 @@ class array_of_optional {
 
     reference operator*() const { return arr[ind]; }
     pointer operator->() { return &arr[ind]; }
-
+    const_iterator& operator+(difference_type diff) {
+      const auto retval = *this;
+      retval += diff;
+      return retval;
+    }
     const_iterator& operator++() {
       ++ind;
       return *this;
     }
     const_iterator operator++(int) {
-      const auto retval = *this;
+      auto retval = *this;
       ++retval;
+      return retval;
+    }
+    const_iterator& operator-(difference_type diff) {
+      auto retval = *this;
+      retval -= diff;
       return retval;
     }
     const_iterator& operator--() {
@@ -62,7 +71,7 @@ class array_of_optional {
       return *this;
     }
     const_iterator operator--(int) {
-      const auto retval = *this;
+      auto retval = *this;
       --retval;
       return retval;
     }

@@ -163,12 +163,12 @@ class dense_dynamic_index_map
     if (!is_present(it.ind)) return end();
 
     base_type::erase(it.ind);
-    return it++;
+    return ++it;
   }
   iterator erase(iterator it) {
     if (!is_present(it.ind)) return end();
     base_type::erase(it.ind);
-    return it++;
+    return ++it;
   }
 
   [[nodiscard]] Value& operator[](Key key) {
@@ -313,7 +313,7 @@ class dense_dynamic_index_map<size_t, Value, identity>
 
     friend class dense_dynamic_index_map;
 
-    const_iterator(iterator it) : ind(it.i), arr(it.arr) {}
+    const_iterator(iterator it) : ind(it.ind), arr(it.arr) {}
     const_iterator(size_t i, const dense_dynamic_index_map& map)
         : ind(i), arr(map) {
       while (ind != arr.base_type::size() && !arr.is_set(ind)) ++ind;
@@ -389,12 +389,12 @@ class dense_dynamic_index_map<size_t, Value, identity>
     if (!is_present(it.ind)) return end();
 
     base_type::erase(it.ind);
-    return it++;
+    return ++it;
   }
   iterator erase(iterator it) {
     if (!is_present(it.ind)) return end();
     base_type::erase(it.ind);
-    return it++;
+    return ++it;
   }
 
   [[nodiscard]] Value& operator[](Key key) {
