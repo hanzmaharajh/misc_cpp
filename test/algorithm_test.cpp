@@ -1,6 +1,6 @@
-#include <algorithm.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <misc/algorithm.h>
 
 #include <algorithm>
 #include <array>
@@ -244,4 +244,43 @@ TEST(Merge, Merge) {
 
     ASSERT_THAT(out, ::testing::ElementsAre(1, 2, 3, 4, 5, 6, 7, 8));
   }
+}
+
+TEST(is, is) {
+  using namespace misc;
+  ASSERT_TRUE(is(1, eq_any_of, 1, 2, 3));
+  ASSERT_FALSE(is(0, eq_any_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(1, eq_all_of, 1, 1, 1));
+  ASSERT_FALSE(is(0, eq_all_of, 1, 1, 1));
+
+  ASSERT_TRUE(is(1, ne_any_of, 1, 2, 3));
+  ASSERT_FALSE(is(1, ne_any_of, 1, 1, 1));
+
+  ASSERT_TRUE(is(0, ne_all_of, 1, 2, 3));
+  ASSERT_FALSE(is(1, ne_all_of, 1, 1, 1));
+
+  ASSERT_TRUE(is(2, gt_any_of, 1, 2, 3));
+  ASSERT_FALSE(is(1, gt_any_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(4, gt_all_of, 1, 2, 3));
+  ASSERT_FALSE(is(3, gt_all_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(1, ge_any_of, 1, 2, 3));
+  ASSERT_FALSE(is(0, ge_any_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(3, ge_all_of, 1, 2, 3));
+  ASSERT_FALSE(is(2, ge_all_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(2, lt_any_of, 1, 2, 3));
+  ASSERT_FALSE(is(3, lt_any_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(0, lt_all_of, 1, 2, 3));
+  ASSERT_FALSE(is(1, lt_all_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(3, le_any_of, 1, 2, 3));
+  ASSERT_FALSE(is(4, le_any_of, 1, 2, 3));
+
+  ASSERT_TRUE(is(1, le_all_of, 1, 2, 3));
+  ASSERT_FALSE(is(4, le_all_of, 1, 2, 3));
 }

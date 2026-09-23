@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <minmax_heap.h>
+#include <misc/minmax_heap.h>
 
 #include <algorithm>
 

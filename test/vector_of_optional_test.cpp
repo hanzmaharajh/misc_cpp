@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <vector_of_optional.h>
+#include <misc/vector_of_optional.h>
 
 #include <cstddef>
 #include <memory>
@@ -7,28 +7,28 @@
 
 #include "test.h"
 
-class VectorOfOptionalFixture
-    : public misc::VectorOfOptional<std::shared_ptr<int>>,
+class vector_of_optionalFixture
+    : public misc::vector_of_optional<std::shared_ptr<int>>,
       public testing::Test {
  public:
 };
 
-TEST_F(VectorOfOptionalFixture, ConstructDefault) {
+TEST_F(vector_of_optionalFixture, ConstructDefault) {
   ASSERT_EQ(size(), 0);
   ASSERT_EQ(capacity(), 0);
   ASSERT_EQ(begin(), end());
 }
 
-class VectorOfOptionalSingleFixture
-    : public misc::VectorOfOptional<std::shared_ptr<int>>,
+class vector_of_optionalSingleFixture
+    : public misc::vector_of_optional<std::shared_ptr<int>>,
       public testing::Test {
  public:
   const std::shared_ptr<int>* initial_emplace_result;
-  VectorOfOptionalSingleFixture()
+  vector_of_optionalSingleFixture()
       : initial_emplace_result(emplace_back(new int{10})) {}
 };
 
-TEST_F(VectorOfOptionalSingleFixture, Basic) {
+TEST_F(vector_of_optionalSingleFixture, Basic) {
   ASSERT_NE(initial_emplace_result, nullptr);
   const auto& ptr_10 = *initial_emplace_result;
   ASSERT_EQ(*ptr_10, 10);
@@ -38,7 +38,7 @@ TEST_F(VectorOfOptionalSingleFixture, Basic) {
   ASSERT_EQ(initial_emplace_result, operator[](0));
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Iterators) {
+TEST_F(vector_of_optionalSingleFixture, Iterators) {
   ASSERT_NE(begin(), end());
 
   const auto& b = *begin();
@@ -55,7 +55,7 @@ TEST_F(VectorOfOptionalSingleFixture, Iterators) {
   ASSERT_EQ(e, begin());
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Replace) {
+TEST_F(vector_of_optionalSingleFixture, Replace) {
   const auto ptr_10 = *initial_emplace_result;
   const auto* new_emplace_result = emplace_at(0, new int{20});
   ASSERT_NE(new_emplace_result, nullptr);
@@ -70,7 +70,7 @@ TEST_F(VectorOfOptionalSingleFixture, Replace) {
   ASSERT_EQ(new_emplace_result, operator[](0));
 }
 
-TEST_F(VectorOfOptionalSingleFixture, ResizeSmaller) {
+TEST_F(vector_of_optionalSingleFixture, ResizeSmaller) {
   const auto ptr_10 = *initial_emplace_result;
   resize(0);
   ASSERT_EQ(size(), 0);
@@ -78,7 +78,7 @@ TEST_F(VectorOfOptionalSingleFixture, ResizeSmaller) {
   ASSERT_EQ(ptr_10.use_count(), 1);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, ResizeBigger) {
+TEST_F(vector_of_optionalSingleFixture, ResizeBigger) {
   const auto ptr_10 = *initial_emplace_result;
   resize(2);
   ASSERT_EQ(size(), 2);
@@ -90,7 +90,7 @@ TEST_F(VectorOfOptionalSingleFixture, ResizeBigger) {
   ASSERT_EQ(nullptr, this->operator[](1));
 }
 
-TEST_F(VectorOfOptionalSingleFixture, EmplaceClear) {
+TEST_F(vector_of_optionalSingleFixture, EmplaceClear) {
   const auto* clear_emplace_result = emplace_at(0, std::nullopt);
   ASSERT_EQ(clear_emplace_result, nullptr);
   ASSERT_EQ(operator[](0), nullptr);
@@ -98,7 +98,7 @@ TEST_F(VectorOfOptionalSingleFixture, EmplaceClear) {
   ASSERT_EQ(capacity(), 1);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, EmplaceBack) {
+TEST_F(vector_of_optionalSingleFixture, EmplaceBack) {
   const auto* emplace_result = emplace_back(new int{20});
   ASSERT_NE(emplace_result, nullptr);
   const auto& ptr_20 = *emplace_result;
@@ -116,7 +116,7 @@ TEST_F(VectorOfOptionalSingleFixture, EmplaceBack) {
   ASSERT_EQ(*back, ptr_20);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Emplace) {
+TEST_F(vector_of_optionalSingleFixture, Emplace) {
   const auto ptr_10 = *initial_emplace_result;
   const auto* emplace_result = emplace(0, new int{20});
   ASSERT_NE(emplace_result, nullptr);
@@ -135,14 +135,14 @@ TEST_F(VectorOfOptionalSingleFixture, Emplace) {
   ASSERT_EQ(*back, ptr_10);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Reset) {
+TEST_F(vector_of_optionalSingleFixture, Reset) {
   reset(0);
   ASSERT_EQ(operator[](0), nullptr);
   ASSERT_EQ(size(), 1);
   ASSERT_EQ(capacity(), 1);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Erase) {
+TEST_F(vector_of_optionalSingleFixture, Erase) {
   const auto ptr_10 = *initial_emplace_result;
   erase(0);
   ASSERT_EQ(size(), 0);
@@ -150,9 +150,9 @@ TEST_F(VectorOfOptionalSingleFixture, Erase) {
   ASSERT_EQ(ptr_10.use_count(), 1);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Copy) {
+TEST_F(vector_of_optionalSingleFixture, Copy) {
   const auto ptr_10 = *initial_emplace_result;
-  const misc::VectorOfOptional<std::shared_ptr<int>> copy = *this;
+  const misc::vector_of_optional<std::shared_ptr<int>> copy = *this;
   ASSERT_EQ(size(), 1);
   ASSERT_EQ(capacity(), 1);
   ASSERT_EQ(copy.size(), 1);
@@ -161,33 +161,33 @@ TEST_F(VectorOfOptionalSingleFixture, Copy) {
   ASSERT_EQ(ptr_10.use_count(), 3);
 }
 
-TEST_F(VectorOfOptionalSingleFixture, Move) {
+TEST_F(vector_of_optionalSingleFixture, Move) {
   const auto ptr_10 = *initial_emplace_result;
-  const misc::VectorOfOptional<std::shared_ptr<int>> copy = std::move(*this);
+  const misc::vector_of_optional<std::shared_ptr<int>> copy = std::move(*this);
   ASSERT_EQ(copy.size(), 1);
   ASSERT_EQ(copy.capacity(), 1);
 
   ASSERT_EQ(ptr_10.use_count(), 2);
 }
 
-using VectorOfOptionalCountingFixture = SpecMemberCountingFixture;
+using vector_of_optionalCountingFixture = SpecMemberCountingFixture;
 
-TEST_F(VectorOfOptionalCountingFixture, DefaultConstruct) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, DefaultConstruct) {
+  misc::vector_of_optional<TestElement> v;
   EXPECT_EQ(call_counts.constructor_calls, 0);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, Destroy) {
+TEST_F(vector_of_optionalCountingFixture, Destroy) {
   {
-    misc::VectorOfOptional<TestElement> v;
+    misc::vector_of_optional<TestElement> v;
     v.emplace_back();
     EXPECT_EQ(call_counts.constructor_calls, 1);
   }
   EXPECT_EQ(call_counts.destructor_calls, 1);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, Emplace) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, Emplace) {
+  misc::vector_of_optional<TestElement> v;
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
 
@@ -205,8 +205,8 @@ TEST_F(VectorOfOptionalCountingFixture, Emplace) {
   EXPECT_EQ(call_counts.allocating_new_calls, 0);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, EmplaceWithoutRealloc) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, EmplaceWithoutRealloc) {
+  misc::vector_of_optional<TestElement> v;
   v.reserve(2);
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
@@ -219,8 +219,8 @@ TEST_F(VectorOfOptionalCountingFixture, EmplaceWithoutRealloc) {
   EXPECT_EQ(call_counts.allocating_new_calls, 0);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, EmplaceWithRealloc) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, EmplaceWithRealloc) {
+  misc::vector_of_optional<TestElement> v;
   v.reserve(1);
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
@@ -233,8 +233,8 @@ TEST_F(VectorOfOptionalCountingFixture, EmplaceWithRealloc) {
   EXPECT_EQ(call_counts.allocating_new_calls, 0);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, Reserve) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, Reserve) {
+  misc::vector_of_optional<TestElement> v;
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
 
@@ -248,8 +248,8 @@ TEST_F(VectorOfOptionalCountingFixture, Reserve) {
   EXPECT_EQ(call_counts.allocating_new_calls, 0);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, Erase) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, Erase) {
+  misc::vector_of_optional<TestElement> v;
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
   EXPECT_EQ(call_counts.destructor_calls, 0);
@@ -259,8 +259,8 @@ TEST_F(VectorOfOptionalCountingFixture, Erase) {
   EXPECT_EQ(call_counts.destructor_calls, 1);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, Copy) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, Copy) {
+  misc::vector_of_optional<TestElement> v;
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
 
@@ -271,8 +271,8 @@ TEST_F(VectorOfOptionalCountingFixture, Copy) {
   EXPECT_EQ(call_counts.allocating_new_calls, 0);
 }
 
-TEST_F(VectorOfOptionalCountingFixture, Move) {
-  misc::VectorOfOptional<TestElement> v;
+TEST_F(vector_of_optionalCountingFixture, Move) {
+  misc::vector_of_optional<TestElement> v;
   v.emplace_back();
   EXPECT_EQ(call_counts.constructor_calls, 1);
 

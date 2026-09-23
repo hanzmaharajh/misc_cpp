@@ -1,4 +1,4 @@
-#include <comp_element.h>
+#include <misc/comp_element.h>
 #include <gtest/gtest.h>
 
 TEST(CompElement, Comp) {

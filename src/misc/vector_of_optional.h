@@ -7,30 +7,23 @@
 #include <utility>
 
 #include "allocated_storages.h"
+#include "compact_int_array.h"
 
 namespace misc {
 
-namespace details {
-struct octet {
-  uint8_t bits;
-  bool operator==(const octet& rhs) const { return bits == rhs.bits; }
-  bool operator!=(const octet& rhs) const { return !(*this == rhs); }
-};
-}  // namespace details
-
 template <typename T>
-class VectorOfOptional {
+class vector_of_optional {
  protected:
   size_t curr_size = 0;
-  allocated_storages<details::octet, T> storages;
+  allocated_storages<uint8_t, T> storages;
 
   static constexpr size_t BITS_STORE_IND = 0;
   static constexpr size_t DATA_STORE_IND = 1;
-  static allocated_storages<details::octet, T> make_storages(size_t capacity) {
-    allocated_storages<details::octet, T> storages{
+  static allocated_storages<uint8_t, T> make_storages(size_t capacity) {
+    allocated_storages<uint8_t, T> storages{
         (capacity + CHAR_BIT - 1) / CHAR_BIT, capacity};
     const auto& bits_range = storages.template get<BITS_STORE_IND>();
-    std::fill(bits_range.begin(), bits_range.end(), details::octet{0x00});
+    std::fill(bits_range.begin(), bits_range.end(), 0x00);
     return storages;
   }
 
@@ -39,34 +32,26 @@ class VectorOfOptional {
         storages.template get<DATA_STORE_IND>().begin());
   }
 
-  static bool is_bit_set(size_t i, arr_range<details::octet> octs) {
-    return octs[i / CHAR_BIT].bits & (1 << (i & ((1 << CHAR_BIT) - 1)));
-  }
-
-  static void set_bit(size_t i, arr_range<details::octet> bit_range) {
-    bit_range[i / CHAR_BIT].bits |=
-        static_cast<uint8_t>(1u << (i & ((1 << CHAR_BIT) - 1u)));
-  }
-
-  static void reset_bit(size_t i, arr_range<details::octet> bit_range) {
-    bit_range[i >> uint8_t{CHAR_BIT}].bits &=
-        static_cast<uint8_t>(~(1u << (i & ((1 << CHAR_BIT) - 1u))));
+  static bool is_bit_set(size_t i, arr_range<uint8_t> octs) {
+    return octs[i / CHAR_BIT] & (1 << (i & ((1 << CHAR_BIT) - 1)));
   }
 
   bool is_set(size_t i) const {
-    return is_bit_set(i, storages.template get<BITS_STORE_IND>());
+    const auto& range = storages.template get<BITS_STORE_IND>();
+    assert(i < range.size() * sizeof(uint8_t) * CHAR_BIT);
+    return misc::get_bit(range.begin(), i);
   }
 
   void set_bit(size_t i) {
-    auto bit_range = storages.template get<BITS_STORE_IND>();
-    set_bit(i, bit_range);
-    bit_range[i / CHAR_BIT].bits |=
-        static_cast<uint8_t>(1u << (i & ((1 << CHAR_BIT) - 1u)));
+    const auto& range = storages.template get<BITS_STORE_IND>();
+    assert(i < range.size() * sizeof(uint8_t) * CHAR_BIT);
+    misc::set_bit(range.begin(), true, i);
   }
 
   void reset_bit(size_t i) {
-    auto bit_range = storages.template get<BITS_STORE_IND>();
-    reset_bit(i, bit_range);
+    const auto& range = storages.template get<BITS_STORE_IND>();
+    assert(i < range.size() * sizeof(uint8_t) * CHAR_BIT);
+    misc::set_bit(range.begin(), false, i);
   }
 
   static size_t exp_reallocation_size(size_t s) {
@@ -88,8 +73,7 @@ class VectorOfOptional {
     maybe_reallocate_and_copy_exact(exp_reallocation_size(s));
   }
 
-  static void destroy_arr_elements(
-      allocated_storages<details::octet, T>& storages) {
+  static void destroy_arr_elements(allocated_storages<uint8_t, T>& storages) {
     const auto& data_range = storages.template get<DATA_STORE_IND>();
     const auto& bits_range = storages.template get<BITS_STORE_IND>();
     for (size_t i = 0; i < data_range.size(); ++i) {
@@ -130,7 +114,7 @@ class VectorOfOptional {
     using pointer = const T*;
     using reference = const T*;
 
-    const_iterator(size_t index, const VectorOfOptional& v)
+    const_iterator(size_t index, const vector_of_optional& v)
         : ind(index), arr(v) {}
 
     reference operator*() const { return arr[ind]; }
@@ -140,24 +124,29 @@ class VectorOfOptional {
       ++ind;
       return *this;
     }
+
     const_iterator operator++(int) {
       auto retval = *this;
       ++retval;
       return retval;
     }
+
     const_iterator& operator--() {
       --ind;
       return *this;
     }
+
     const_iterator operator--(int) {
       auto retval = *this;
       --retval;
       return retval;
     }
+
     const_iterator operator+=(difference_type diff) {
       ind += diff;
       return *this;
     }
+
     const_iterator operator-=(difference_type diff) { return (*this += -diff); }
 
     friend const_iterator operator+(const const_iterator& lhs,
@@ -191,12 +180,12 @@ class VectorOfOptional {
 
    private:
     size_t ind;
-    const VectorOfOptional& arr;
+    const vector_of_optional& arr;
   };
 
-  VectorOfOptional() noexcept : curr_size{0}, storages{make_storages(0)} {}
+  vector_of_optional() noexcept : curr_size{0}, storages{make_storages(0)} {}
 
-  VectorOfOptional(const VectorOfOptional& o)
+  vector_of_optional(const vector_of_optional& o)
       : storages{make_storages(o.size())} {
     resize(o.size());
     for (size_t i = 0; i < o.size(); ++i) {
@@ -208,11 +197,11 @@ class VectorOfOptional {
     }
   };
 
-  VectorOfOptional(VectorOfOptional&& o) : storages{make_storages(0)} {
+  vector_of_optional(vector_of_optional&& o) : storages{make_storages(0)} {
     swap(o);
   }
 
-  VectorOfOptional& operator=(const VectorOfOptional& o) noexcept {
+  vector_of_optional& operator=(const vector_of_optional& o) noexcept {
     if (&o != this) {
       clear();
       copy_to_empty_arr(o.storages, storages);
@@ -220,18 +209,18 @@ class VectorOfOptional {
     return *this;
   }
 
-  VectorOfOptional& operator=(VectorOfOptional&& o) noexcept = default;
+  vector_of_optional& operator=(vector_of_optional&& o) noexcept = default;
 
-  ~VectorOfOptional() { destroy_arr_elements(storages); };
+  ~vector_of_optional() { destroy_arr_elements(storages); };
 
-  void swap(VectorOfOptional& o) noexcept {
+  void swap(vector_of_optional& o) noexcept {
     using std::swap;
     swap(o.storages, storages);
     swap(o.curr_size, curr_size);
   }
 
-  [[nodiscard]] friend bool operator==(const VectorOfOptional& lhs,
-                                       const VectorOfOptional& rhs) {
+  [[nodiscard]] friend bool operator==(const vector_of_optional& lhs,
+                                       const vector_of_optional& rhs) {
     const auto& l_bits_range = lhs.storages.template get<BITS_STORE_IND>();
     const auto& r_bits_range = rhs.storages.template get<BITS_STORE_IND>();
 
@@ -253,8 +242,8 @@ class VectorOfOptional {
     return true;
   }
 
-  [[nodiscard]] friend bool operator!=(const VectorOfOptional& lhs,
-                                       const VectorOfOptional& rhs) {
+  [[nodiscard]] friend bool operator!=(const vector_of_optional& lhs,
+                                       const vector_of_optional& rhs) {
     return !(lhs == rhs);
   }
 
@@ -263,7 +252,7 @@ class VectorOfOptional {
   }
 
   [[nodiscard]] const T* operator[](size_t pos) const {
-    return const_cast<VectorOfOptional*>(this)->operator[](pos);
+    return const_cast<vector_of_optional*>(this)->operator[](pos);
   }
 
   T* push_back(const T& arg) { return emplace_back(arg); }
@@ -317,11 +306,10 @@ class VectorOfOptional {
 
       for (size_t i = 0; i < s; ++i) {
         const size_t to_pos = i + (i >= pos);
-        if (is_bit_set(i, from_bits_range)) {
-          set_bit(to_pos, to_bits_range);
+        bool is_set = is_bit_set(i, from_bits_range);
+        misc::set_bit(to_bits_range.begin(), is_set, to_pos);
+        if (is_set) {
           new (to_data_range.begin() + to_pos) T(std::move(from_data_range[i]));
-        } else {
-          reset_bit(to_pos, to_bits_range);
         }
       }
 
@@ -346,8 +334,7 @@ class VectorOfOptional {
   void reset(size_t pos) {
     if (is_set(pos)) {
       reset_bit(pos);
-      if (const auto* arr = data())
-        std::destroy_at(arr + pos);
+      if (const auto* arr = data()) std::destroy_at(arr + pos);
     }
   }
 

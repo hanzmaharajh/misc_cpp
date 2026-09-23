@@ -1,4 +1,4 @@
-#include <dense_index_map.h>
+#include <misc/dense_index_map.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 

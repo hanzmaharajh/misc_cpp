@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <semaphore.h>
+#include <misc/semaphore.h>
 
 #include <condition_variable>
 #include <future>

@@ -115,7 +115,7 @@ class unique_tagged_ptr<T[]> : private tagged_ptr<T[]> {
   using base_type::operator[];
 
   void reset(T* ptr = nullptr) {
-    delete get();
+    delete[] get();
     base_type::reset(ptr);
   }
 };

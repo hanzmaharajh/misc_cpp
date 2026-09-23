@@ -2,6 +2,8 @@
 
 #include <type_traits>
 
+#include "always_false.h"
+
 namespace misc {
 #if __cplusplus >= 202002L
 #include <bit>
@@ -28,6 +30,8 @@ template <typename T>
     return static_cast<int>(sizeof(i)) * CHAR_BIT - 1 - __builtin_clzl(i);
   } else if constexpr (std::is_same_v<T, unsigned int>) {
     return static_cast<int>(sizeof(i)) * CHAR_BIT - 1 - __builtin_clz(i);
+  } else {
+    static_assert(always_false_v<T>, "Unsupported type");
   }
 #else
   int retval = 0;

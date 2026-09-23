@@ -18,9 +18,9 @@ struct identity {
 
 template <typename Key, typename Value, typename KeyToIndexMap = identity>
 class dense_dynamic_index_map
-    : protected VectorOfOptional<std::pair<const Key, Value>> {
+    : protected vector_of_optional<std::pair<const Key, Value>> {
   KeyToIndexMap index_map;
-  using base_type = VectorOfOptional<std::pair<const Key, Value>>;
+  using base_type = vector_of_optional<std::pair<const Key, Value>>;
 
  public:
   dense_dynamic_index_map(size_t init_count = 0,
@@ -91,7 +91,7 @@ class dense_dynamic_index_map
 
     friend class dense_dynamic_index_map;
 
-    const_iterator(iterator it) : ind(it.i), arr(it.arr) {}
+    const_iterator(iterator it) : ind(it.ind), arr(it.arr) {}
     const_iterator(size_t i, const dense_dynamic_index_map& map)
         : ind(i), arr(map) {
       while (ind != arr.base_type::size() && !arr.is_set(ind)) ++ind;
@@ -213,9 +213,9 @@ private:
 
 template <typename Value>
 class dense_dynamic_index_map<size_t, Value, identity>
-    : protected VectorOfOptional<Value> {
+    : protected vector_of_optional<Value> {
   using KeyToIndexMap = identity;
-  using base_type = VectorOfOptional<Value>;
+  using base_type = vector_of_optional<Value>;
   using Key = size_t;
 
  public:

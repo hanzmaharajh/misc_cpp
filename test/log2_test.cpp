@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <log2.h>
+#include <misc/log2.h>
 
 #include <algorithm>
 #include <array>
