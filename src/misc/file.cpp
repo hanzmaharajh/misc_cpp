@@ -66,9 +66,8 @@ FileOpener::Handler CommonCompressedFileOpener::popen_handler(
     std::string binary, std::string read_args, std::string write_args,
     std::string append_args) {
   if (!is_executable_on_path(binary)) {
-    return [](const std::filesystem::path&, const char*) {
-      return null_fuptr();
-    };
+    return
+        [](const std::filesystem::path&, const char*) { return null_fuptr(); };
   }
 
   return

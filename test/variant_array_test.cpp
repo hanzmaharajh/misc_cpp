@@ -75,14 +75,11 @@ TEST_F(array_of_variantFixture, VisitAll) {
 }
 
 TEST_F(array_of_variantFixture, VisitAlternative) {
-  std::vector<std::tuple<size_t, std::string>>
-      visit_results;
+  std::vector<std::tuple<size_t, std::string>> visit_results;
 
   visit_alternative<std::string>([&](size_t i, const std::string& value) {
     visit_results.emplace_back(i, value);
   });
 
-  ASSERT_THAT(
-      visit_results,
-      ::testing::ElementsAre(std::tuple{1, "1"}));
+  ASSERT_THAT(visit_results, ::testing::ElementsAre(std::tuple{1, "1"}));
 }

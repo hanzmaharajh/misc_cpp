@@ -95,6 +95,11 @@ template <std::size_t Start, std::size_t N, typename... Args>
                       std::forward_as_tuple(std::forward<Args>(args)...));
 }
 
+/// @brief Repeats a parameter pack N times
+/// @tparam N How many copies to make
+/// @tparam ...Args The pack type
+/// @param ...args The pack arguments
+/// @return A tuple holding N copies of the input pack, concatenated
 template <std::size_t N, typename... Args>
 [[nodiscard]] auto repeat(Args&&... args) {
   return details::repeat(std::make_index_sequence<N>(),
@@ -113,6 +118,9 @@ template <typename Func, typename... Args>
   return std::make_tuple(f(std::forward<Args>(args))...);
 }
 
+/// @brief The position of a type within a parameter pack
+/// @tparam Type The type to look for. It must appear exactly once in Args.
+/// @tparam ...Args The pack to search
 template <typename Type, typename... Args>
 struct index_of {
  private:
@@ -128,6 +136,7 @@ struct index_of {
   constexpr static std::size_t value = get_ind();
 };
 
+/// @copydoc index_of
 template <typename Type, typename... Args>
 constexpr auto index_of_v = index_of<Type, Args...>::value;
 

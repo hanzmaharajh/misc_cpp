@@ -13,6 +13,9 @@ namespace misc {
 
 /// @brief Sorts elements in the input range by comparing their values after
 /// being transformed. The transform will only be called once per element.
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @tparam Compare The comparison function type
 /// @param begin Beginning iterator
 /// @param end End iterator
 /// @param op The transform applied to each element in the range
@@ -21,7 +24,8 @@ template <typename Iter, typename UnaryOperation, typename Compare>
 void transform_sort(Iter begin, Iter end, UnaryOperation&& op, Compare&& comp) {
   using Diff = typename std::iterator_traits<Iter>::difference_type;
   using T = typename std::iterator_traits<Iter>::value_type;
-  using Key = std::remove_cv_t<std::remove_reference_t<std::invoke_result_t<UnaryOperation&, T&>>>;
+  using Key = std::remove_cv_t<
+      std::remove_reference_t<std::invoke_result_t<UnaryOperation&, T&>>>;
 
   const Diff length = std::distance(begin, end);
 
@@ -51,8 +55,10 @@ void transform_sort(Iter begin, Iter end, UnaryOperation&& op, Compare&& comp) {
 
 /// @brief Sorts elements in the input range by comparing their values after
 /// being transformed. The transform will only be called once per element.
-/// @param begin Beginning iterator
-/// @param end End iterator
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @param first Beginning iterator
+/// @param last End iterator
 /// @param op The transform applied to each element in the range
 template <typename Iter, typename UnaryOperation>
 void transform_sort(Iter first, Iter last, UnaryOperation&& op) {
@@ -62,10 +68,15 @@ void transform_sort(Iter first, Iter last, UnaryOperation&& op) {
 /// @brief Finds the min element in the input range by comparing the range's
 /// values after being transformed. The transform will only be called once per
 /// element.
-/// @param begin Beginning iterator
-/// @param end End iterator
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @tparam Compare The comparison function type
+/// @param first Beginning iterator
+/// @param last End iterator
 /// @param op The transform applied to each element in the range
 /// @param comp The comparison function
+/// @return An iterator to the minimum element, or @p last if the range is
+/// empty
 template <typename Iter, typename UnaryOperation, typename Compare>
 [[nodiscard]] Iter transform_min_element(Iter first, Iter last,
                                          UnaryOperation&& op, Compare&& comp) {
@@ -86,9 +97,13 @@ template <typename Iter, typename UnaryOperation, typename Compare>
 /// @brief Finds the min element in the input range by comparing the range's
 /// values after being transformed. The transform will only be called once per
 /// element.
-/// @param begin Beginning iterator
-/// @param end End iterator
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @param first Beginning iterator
+/// @param last End iterator
 /// @param op The transform applied to each element in the range
+/// @return An iterator to the minimum element, or @p last if the range is
+/// empty
 template <typename Iter, typename UnaryOperation>
 [[nodiscard]] Iter transform_min_element(Iter first, Iter last,
                                          UnaryOperation&& op) {
@@ -99,10 +114,15 @@ template <typename Iter, typename UnaryOperation>
 /// @brief Finds the min and max elements in the input range by comparing the
 /// range's values after being transformed. The transform will only be called
 /// once per element.
-/// @param begin Beginning iterator
-/// @param end End iterator
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @tparam Compare The comparison function type
+/// @param first Beginning iterator
+/// @param last End iterator
 /// @param op The transform applied to each element in the range
 /// @param comp The comparison function
+/// @return Iterators to the minimum and maximum elements, both @p last if
+/// the range is empty
 template <typename Iter, typename UnaryOperation, typename Compare>
 [[nodiscard]] std::pair<Iter, Iter> transform_minmax_element(
     Iter first, Iter last, UnaryOperation&& op, Compare&& comp) {
@@ -131,9 +151,13 @@ template <typename Iter, typename UnaryOperation, typename Compare>
 /// @brief Finds the min and max elements in the input range by comparing the
 /// range's values after being transformed. The transform will only be called
 /// once per element.
-/// @param begin Beginning iterator
-/// @param end End iterator
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @param first Beginning iterator
+/// @param last End iterator
 /// @param op The transform applied to each element in the range
+/// @return Iterators to the minimum and maximum elements, both @p last if
+/// the range is empty
 template <typename Iter, typename UnaryOperation>
 [[nodiscard]] std::pair<Iter, Iter> transform_minmax_element(
     Iter first, Iter last, UnaryOperation&& op) {
@@ -142,11 +166,16 @@ template <typename Iter, typename UnaryOperation>
 }
 
 /// @brief Transforms elements if they satisfy some predicate
-/// @param begin Beginning iterator
-/// @param end End iterator
-/// @param out Output operator
+/// @tparam Iter The input range's iterator type
+/// @tparam OIter The output iterator type
+/// @tparam Predicate The predicate type
+/// @tparam UnaryOperation The transform type
+/// @param first Beginning iterator
+/// @param last End iterator
+/// @param out Output iterator
 /// @param pred The predicate evaluated for each element in the range
 /// @param op The transform applied to each element that satisfies the predicate
+/// @return The output iterator, past the last element written
 template <typename Iter, typename OIter, typename Predicate,
           typename UnaryOperation>
 [[nodiscard]] OIter transform_if(Iter first, Iter last, OIter out,
@@ -161,6 +190,16 @@ template <typename Iter, typename OIter, typename Predicate,
   return out;
 }
 
+/// @brief Calls @p func once for every combination drawn from the given
+/// ranges, one element from each
+/// @tparam Func The visitor type
+/// @tparam Iter The first range's iterator type
+/// @tparam ...IterPack The remaining ranges' iterator types
+/// @param func The visitor, called with one element per range
+/// @param range_begin The first range's beginning
+/// @param range_end The first range's end
+/// @param ...other_ranges The remaining ranges, as begin/end pairs
+/// @return @p func, after every call
 template <typename Func, typename Iter, typename... IterPack>
 Func visit_range_permutations(Func func, Iter range_begin, Iter range_end,
                               IterPack... other_ranges) {
@@ -175,6 +214,15 @@ Func visit_range_permutations(Func func, Iter range_begin, Iter range_end,
   return func;
 }
 
+/// @brief Calls @p f once for every ordered selection of Choose elements
+/// from a range, allowing the same element to be picked more than once
+/// @tparam Choose How many elements each selection holds
+/// @tparam Iter The range's iterator type
+/// @tparam Func The visitor type
+/// @param begin The first element
+/// @param end One past the last element
+/// @param f The visitor, called with Choose elements
+/// @return @p f, after every call
 template <size_t Choose, typename Iter, typename Func>
 Func visit_permutations_with_replacement(Iter begin, Iter end, Func f) {
   assert(std::distance(begin, end) >= Choose);
@@ -201,6 +249,15 @@ Func permutations_without_replacement(std::index_sequence<Inds...>, Iter begin,
 }
 }  // namespace details
 
+/// @brief Calls @p f once for every ordered selection of Choose *distinct*
+/// positions from a range
+/// @tparam Choose How many elements each selection holds
+/// @tparam Iter The range's iterator type
+/// @tparam Func The visitor type
+/// @param begin The first element
+/// @param end One past the last element
+/// @param f The visitor, called with Choose elements
+/// @return @p f, after every call
 template <size_t Choose, typename Iter, typename Func>
 Func visit_permutations_without_replacement(Iter begin, Iter end, Func f) {
   if constexpr (Choose == 0) {
@@ -211,12 +268,22 @@ Func visit_permutations_without_replacement(Iter begin, Iter end, Func f) {
   }
 }
 
+/// @brief Partitions elements by a predicate applied to their transformed
+/// values. The transform will only be called once per element.
+/// @tparam Iter The range's iterator type
+/// @tparam UnaryOperation The transform type
+/// @tparam UnaryPred The predicate type
+/// @param begin Beginning iterator
+/// @param end End iterator
+/// @param op The transform applied to each element in the range
+/// @param pred The predicate evaluated on each transformed value
 template <typename Iter, typename UnaryOperation, typename UnaryPred>
 void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
                          UnaryPred&& pred) {
   using Diff = typename std::iterator_traits<Iter>::difference_type;
   using T = typename std::iterator_traits<Iter>::value_type;
-  using Key = std::remove_cv_t<std::remove_reference_t<std::invoke_result_t<UnaryOperation&, T&>>>;
+  using Key = std::remove_cv_t<
+      std::remove_reference_t<std::invoke_result_t<UnaryOperation&, T&>>>;
 
   const Diff length = std::distance(begin, end);
 
@@ -243,8 +310,16 @@ void partition_transform(Iter begin, Iter end, UnaryOperation&& op,
   std::destroy(indices_range.begin(), indices_range.end());
 }
 
-// Returns true if the two sorted input ranges share a common element.
-// False, otherwise.
+/// @brief Reports whether two sorted ranges share a common element
+/// @tparam Iter1 The first range's iterator type
+/// @tparam Iter2 The second range's iterator type
+/// @tparam Comp The comparison operator both ranges are sorted by
+/// @param first1 The first range's beginning
+/// @param last1 The first range's end
+/// @param first2 The second range's beginning
+/// @param last2 The second range's end
+/// @param comp The comparison operator
+/// @return true if any element appears in both ranges
 template <class Iter1, class Iter2, class Comp = std::less<>>
 bool sets_intersect(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
                     Comp&& comp = Comp()) {
@@ -261,8 +336,15 @@ bool sets_intersect(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
   return false;
 }
 
-// Merges multiple, sorted, input ranges into a single sorted range, o_it.
-// Each range's iterator must meet the requirements of LegacyForwardIterator.
+/// @brief Merges several sorted ranges into one sorted output range
+/// @tparam Comp The comparison operator every range is sorted by
+/// @tparam OutItr The output iterator type
+/// @tparam ...Args The input range types
+/// @param comp The comparison operator
+/// @param o_it The output iterator the merged elements are written to
+/// @param ...args The sorted input ranges. Each range's iterator must meet
+/// the requirements of LegacyForwardIterator.
+/// @return The output iterator, past the last element written
 template <typename Comp, typename OutItr, typename... Args>
 auto merge(Comp comp, OutItr o_it, const Args&... args) {
   using ItrType = decltype(std::begin(std::get<0>(take_first<1>(args...))));
@@ -304,8 +386,17 @@ auto merge(Comp comp, OutItr o_it, const Args&... args) {
   return o_it;
 }
 
-// Returns true if all elements of the first sorted input range are contained
-// in the second. False, otherwise.
+/// @brief Reports whether every element of one sorted range appears in
+/// another
+/// @tparam Iter1 The candidate subset's iterator type
+/// @tparam Iter2 The superset's iterator type
+/// @tparam Comp The comparison operator both ranges are sorted by
+/// @param first1 The candidate subset's beginning
+/// @param last1 The candidate subset's end
+/// @param first2 The superset's beginning
+/// @param last2 The superset's end
+/// @param comp The comparison operator
+/// @return true if every element of the first range is in the second
 template <class Iter1, class Iter2, class Comp = std::less<>>
 bool is_subset(Iter1 first1, Iter1 last1, Iter2 first2, Iter2 last2,
                Comp&& comp = Comp()) {
@@ -333,40 +424,51 @@ struct OpQuant {
 };
 }  // namespace details
 
-struct eq_any_of_t : details::OpQuant<std::equal_to<void>, details::any_of> {
-} eq_any_of;
-struct eq_all_of_t : details::OpQuant<std::equal_to<void>, details::all_of> {
-} eq_all_of;
+struct eq_any_of_t : details::OpQuant<std::equal_to<void>, details::any_of> {};
+inline constexpr eq_any_of_t eq_any_of;
+struct eq_all_of_t : details::OpQuant<std::equal_to<void>, details::all_of> {};
+inline constexpr eq_all_of_t eq_all_of;
 
 struct ne_any_of_t
-    : details::OpQuant<std::not_equal_to<void>, details::any_of> {
-} ne_any_of;
+    : details::OpQuant<std::not_equal_to<void>, details::any_of> {};
+inline constexpr ne_any_of_t ne_any_of;
 struct ne_all_of_t
-    : details::OpQuant<std::not_equal_to<void>, details::all_of> {
-} ne_all_of;
+    : details::OpQuant<std::not_equal_to<void>, details::all_of> {};
+inline constexpr ne_all_of_t ne_all_of;
 
-struct gt_any_of_t : details::OpQuant<std::greater<void>, details::any_of> {
-} gt_any_of;
-struct gt_all_of_t : details::OpQuant<std::greater<void>, details::all_of> {
-} gt_all_of;
+struct gt_any_of_t : details::OpQuant<std::greater<void>, details::any_of> {};
+inline constexpr gt_any_of_t gt_any_of;
+struct gt_all_of_t : details::OpQuant<std::greater<void>, details::all_of> {};
+inline constexpr gt_all_of_t gt_all_of;
 
 struct ge_any_of_t
-    : details::OpQuant<std::greater_equal<void>, details::any_of> {
-} ge_any_of;
+    : details::OpQuant<std::greater_equal<void>, details::any_of> {};
+inline constexpr ge_any_of_t ge_any_of;
 struct ge_all_of_t
-    : details::OpQuant<std::greater_equal<void>, details::all_of> {
-} ge_all_of;
+    : details::OpQuant<std::greater_equal<void>, details::all_of> {};
+inline constexpr ge_all_of_t ge_all_of;
 
-struct lt_any_of_t : details::OpQuant<std::less<void>, details::any_of> {
-} lt_any_of;
-struct lt_all_of_t : details::OpQuant<std::less<void>, details::all_of> {
-} lt_all_of;
+struct lt_any_of_t : details::OpQuant<std::less<void>, details::any_of> {};
+inline constexpr lt_any_of_t lt_any_of;
+struct lt_all_of_t : details::OpQuant<std::less<void>, details::all_of> {};
+inline constexpr lt_all_of_t lt_all_of;
 
 struct le_any_of_t : details::OpQuant<std::less_equal<void>, details::any_of> {
-} le_any_of;
+};
+inline constexpr le_any_of_t le_any_of;
 struct le_all_of_t : details::OpQuant<std::less_equal<void>, details::all_of> {
-} le_all_of;
+};
+inline constexpr le_all_of_t le_all_of;
 
+/// @brief Compares one value against several others at once, e.g.
+/// `is(x, eq_any_of, 1, 2, 3)`
+/// @tparam Lhs The type of the value being compared
+/// @tparam Op One of the comparison tags, such as misc::eq_any_of
+/// @tparam ...Args The types of the values compared against
+/// @param lhs The value being compared
+/// @param args The values to compare it against
+/// @return Whether the tag's comparison holds for any or all of @p args, as
+/// the tag specifies
 template <typename Lhs, typename Op, typename... Args>
 bool is(const Lhs& lhs, Op, const Args&... args) {
   if constexpr (std::is_same_v<details::any_of, typename Op::Quantifier>)

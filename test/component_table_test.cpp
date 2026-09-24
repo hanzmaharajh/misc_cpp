@@ -111,7 +111,7 @@ TEST_F(ComponentTableFixture, VisitAllWithEntityID) {
   emplace<Velocity>(id2, 3, 3);
 
   int count = 0;
-  visit_all<0>([&](entity_id id, Position& ) {
+  visit_all<0>([&](entity_id id, Position&) {
     EXPECT_TRUE(is_alive(id));
     count++;
   });
@@ -149,9 +149,9 @@ TEST_F(ComponentTableFixture, CompactReordersByComponentPriority) {
   emplace<Velocity>(e3, 2, 2);
   emplace<Health>(e3, 100);
 
-  [[maybe_unused]]pos_t pos1 = id_map[e1.index()];
-  [[maybe_unused]]pos_t pos2 = id_map[e2.index()];
-  [[maybe_unused]]pos_t pos3 = id_map[e3.index()];
+  [[maybe_unused]] pos_t pos1 = id_map[e1.index()];
+  [[maybe_unused]] pos_t pos2 = id_map[e2.index()];
+  [[maybe_unused]] pos_t pos3 = id_map[e3.index()];
 
   compact<0, 1, 2>();
 

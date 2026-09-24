@@ -2,21 +2,33 @@ find_package(GTest CONFIG REQUIRED)
 
 set(MISC_TEST_CPP_FILES
     algorithm_test.cpp
+    algorithm_odr_test.cpp
     allocated_storages_test.cpp
+    allocated_storages_regression_test.cpp
     array_of_optional_test.cpp
+    array_of_optional_regression_test.cpp
+    array_of_variant_regression_test.cpp
     comp_element_test.cpp
     compact_int_array_test.cpp
+    compact_int_array_regression_test.cpp
     component_table_test.cpp
+    component_table_regression_test.cpp
     dense_index_map_test.cpp
+    dense_index_map_regression_test.cpp
     iterator_test.cpp
+    iterator_regression_test.cpp
+    iterator_arrow_test.cpp
     log2_test.cpp
     minmax_heap_test.cpp
     pack_manipulation_test.cpp
     semaphore_test.cpp
     size_aware_cache_test.cpp
+    size_aware_cache_regression_test.cpp
+    strong_arithmetic_types_test.cpp
     tagged_ptr_test.cpp
     test.cpp
     vector_of_optional_test.cpp
+    vector_of_optional_regression_test.cpp
     variant_array_test.cpp
 )
 

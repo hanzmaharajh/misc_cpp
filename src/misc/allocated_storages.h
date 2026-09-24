@@ -10,19 +10,39 @@
 
 namespace misc {
 
+/// @brief A non-owning view over a contiguous run of T
+/// @tparam T The element type
 template <typename T>
 class arr_range {
   T* m_start;
   T* m_end;
 
  public:
+  /// @brief Constructs a view over [start, end)
+  /// @param start The first element
+  /// @param end One past the last element
   arr_range(T* start, T* end) noexcept : m_start(start), m_end(end) {}
+
+  /// @brief Returns a pointer to the first element
+  /// @return The start of the range
   [[nodiscard]] T* begin() const { return m_start; }
+
+  /// @brief Returns a pointer past the last element
+  /// @return The end of the range
   [[nodiscard]] T* end() const { return m_end; }
+
+  /// @brief Returns the number of elements
+  /// @return The range's length
   [[nodiscard]] size_t size() const {
     return static_cast<size_t>(m_end - m_start);
   }
+
+  /// @brief Returns the element at @p ind
+  /// @param ind The element index. It must be less than size().
+  /// @return A reference to the element
   [[nodiscard]] const T& operator[](size_t ind) const { return m_start[ind]; }
+
+  /// @copydoc operator[](size_t) const
   [[nodiscard]] T& operator[](size_t ind) { return m_start[ind]; }
 };
 
@@ -33,9 +53,14 @@ class arr_range {
 template <typename... Args>
 class allocated_storages {
  public:
+  /// @brief The element type of the N-th array
+  /// @tparam N The array index
   template <size_t N>
   using nth_type = typename std::tuple_element<N, std::tuple<Args...>>::type;
 
+  /// @brief Allocates one array per list, each sized to hold that list
+  /// @param ...lists One initializer list per array, giving its length
+  /// @note Only space is reserved; no objects are created.
   explicit allocated_storages(std::initializer_list<Args>... lists) {
     populate_spans(std::make_index_sequence<sizeof...(Args)>(),
                    lists.size()...);
@@ -43,6 +68,10 @@ class allocated_storages {
     allocate_storage();
   }
 
+  /// @brief Allocates one array per size
+  /// @tparam ...Size The size argument types
+  /// @param ...sizes The number of elements in each array, in order
+  /// @note Only space is reserved; no objects are created.
   template <typename... Size>
   explicit allocated_storages(Size... sizes) {
     static_assert(sizeof...(Size) == sizeof...(Args));
@@ -52,10 +81,16 @@ class allocated_storages {
     allocate_storage();
   }
 
+  /// @brief Not copyable. The block is owned, not shared.
   allocated_storages(const allocated_storages&) = delete;
+
+  /// @brief Takes over another object's block, leaving it with none
   allocated_storages(allocated_storages&&) = default;
 
+  /// @copydoc allocated_storages(const allocated_storages&)
   allocated_storages& operator=(const allocated_storages&) = delete;
+
+  /// @copydoc allocated_storages(allocated_storages&&)
   allocated_storages& operator=(allocated_storages&&) = default;
 
   /// @brief Returns the array allocated for the type indexed by Ind
@@ -111,8 +146,9 @@ class allocated_storages {
   [[nodiscard]] std::pair<size_t, size_t> get_span() const {
     if constexpr (Ind == 0) {
       return {0, m_first_span_len};
+    } else {
+      return m_other_spans[Ind - 1];
     }
-    return m_other_spans[Ind - 1];
   }
 
   void allocate_storage() {
@@ -136,42 +172,71 @@ class allocated_storages {
 /// @brief Creates arrays of multiple object types on the heap with a single
 /// allocation.
 /// @tparam ...Args The type of each array
+/// @brief Creates arrays of multiple object types on the heap with a single
+/// allocation.
+///
+/// Unlike its base, this constructs the elements and destroys them again in
+/// the destructor.
+/// @tparam ...Args The type of each array
 template <typename... Args>
 class unique_arrays : public allocated_storages<Args...> {
   using Base = allocated_storages<Args...>;
 
  public:
+  /// @brief Creates one array per list, holding that list's elements
+  /// @param ...lists One initializer list per array
   explicit unique_arrays(std::initializer_list<Args>... lists)
       : Base(lists...) {
     init_lists(std::make_index_sequence<sizeof...(Args)>(), lists...);
   }
 
+  /// @brief Tag selecting default-initialisation of the elements
   struct default_init_t {};
+
+  /// @brief Tag selecting value-initialisation of the elements
   struct value_init_t {};
 
+  /// @brief Creates one array per size, value-initialising every element
+  /// @tparam ...Size The size argument types
+  /// @param ...sizes The number of elements in each array, in order
   template <typename... Size>
   explicit unique_arrays(Size... sizes) : Base(sizes...) {
     init_arrs<value_init_t>(std::make_index_sequence<sizeof...(Args)>());
   }
 
+  /// @brief Creates one array per size, default-initialising every element
+  /// @tparam ...Size The size argument types
+  /// @param ...sizes The number of elements in each array, in order
   template <typename... Size>
   explicit unique_arrays(default_init_t, Size... sizes) : Base(sizes...) {
     init_arrs<default_init_t>(std::make_index_sequence<sizeof...(Args)>());
   }
 
+  /// @brief Creates one array per size, value-initialising every element
+  /// @tparam ...Size The size argument types
+  /// @param ...sizes The number of elements in each array, in order
   template <typename... Size>
   explicit unique_arrays(value_init_t, Size... sizes) : Base(sizes...) {
     init_arrs<value_init_t>(std::make_index_sequence<sizeof...(Args)>());
   }
 
+  /// @brief Not copyable. The arrays are owned, not shared.
   unique_arrays(const unique_arrays&) = delete;
+
+  /// @brief Takes over another object's arrays, leaving it empty
+  /// @param o The object to move from
   unique_arrays(unique_arrays&& o) noexcept
       : Base{static_cast<Base&&>(std::move(o))} {
     o.m_first_span_len = 0;
     o.m_other_spans.fill({0, 0});
   }
 
+  /// @copydoc unique_arrays(const unique_arrays&)
   unique_arrays& operator=(const unique_arrays&) = delete;
+
+  /// @brief Destroys the current elements and takes over those of @p o
+  /// @param o The object to move from. It is left empty.
+  /// @return *this
   unique_arrays& operator=(unique_arrays&& o) noexcept {
     if (&o != this) {
       del_arrs(std::make_index_sequence<sizeof...(Args)>());
@@ -182,6 +247,7 @@ class unique_arrays : public allocated_storages<Args...> {
     return *this;
   };
 
+  /// @brief Destroys every element of every array
   ~unique_arrays() { del_arrs(std::make_index_sequence<sizeof...(Args)>()); }
 
  private:
@@ -229,7 +295,7 @@ class unique_arrays : public allocated_storages<Args...> {
       }
     } catch (...) {
       std::destroy(range.begin(), end_created);
-      if constexpr (Ind > 0) del_arrs(std::make_index_sequence<Ind - 1>());
+      if constexpr (Ind > 0) del_arrs(std::make_index_sequence<Ind>());
       throw;
     }
   }

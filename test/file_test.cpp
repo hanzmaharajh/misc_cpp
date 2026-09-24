@@ -15,8 +15,7 @@ class CommonCompressedFileOpenerFixture
         ::testing::UnitTest::GetInstance()->current_test_info()->name();
     name += "XXXXXX";
     const auto& r = mkstemp(name.data());
-    if (r == -1)
-      throw std::runtime_error("Failed to create temp file");
+    if (r == -1) throw std::runtime_error("Failed to create temp file");
     name += ext;
     return name;
   }
