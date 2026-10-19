@@ -1,5 +1,5 @@
-#include <misc/comp_element.h>
 #include <gtest/gtest.h>
+#include <misc/comp_element.h>
 
 TEST(CompElement, Comp) {
   using Type = std::tuple<size_t, size_t>;

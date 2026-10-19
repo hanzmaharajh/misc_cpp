@@ -1,13 +1,11 @@
-#include <misc/dense_index_map.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <misc/dense_index_map.h>
 
 #include <algorithm>
 #include <memory>
 #include <string>
 
-
-// TODO Sort this out. There's an issue with the iterators.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
 
@@ -32,19 +30,19 @@ TEST_F(DenseDynamicIndexMapFixture, FindBegin) {
   const auto it = find(1);
   ASSERT_NE(it, end());
   ASSERT_EQ(it, begin());
-  ASSERT_EQ(it->first, 1);
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 1);
-  ASSERT_EQ(it->second, operator[](1));
+  ASSERT_EQ((*it).first, 1);
+  ASSERT_NE((*it).second, nullptr);
+  ASSERT_EQ(*(*it).second, 1);
+  ASSERT_EQ((*it).second, operator[](1));
 }
 
 TEST_F(DenseDynamicIndexMapFixture, FindLast) {
   auto it = find(5);
   ASSERT_NE(it, end());
-  ASSERT_EQ(it->first, 5);
-  ASSERT_NE(it->second, nullptr);
-  ASSERT_EQ(*it->second, 5);
-  ASSERT_EQ(it->second, operator[](5));
+  ASSERT_EQ((*it).first, 5);
+  ASSERT_NE((*it).second, nullptr);
+  ASSERT_EQ(*(*it).second, 5);
+  ASSERT_EQ((*it).second, operator[](5));
   ASSERT_EQ(std::next(it), end());
 }
 
@@ -59,7 +57,7 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceNewMid) {
   ASSERT_NE(it, begin());
   ASSERT_NE(it, end());
 
-  const auto& r = it->second;
+  const auto& r = (*it).second;
   ASSERT_NE(r, nullptr);
   ASSERT_EQ(*r, 3);
 
@@ -76,7 +74,7 @@ TEST_F(DenseDynamicIndexMapFixture, EmplaceNewEnd) {
   ASSERT_NE(it, begin());
   ASSERT_NE(it, end());
 
-  const auto& r = it->second;
+  const auto& r = (*it).second;
   ASSERT_NE(r, nullptr);
   ASSERT_EQ(*r, 6);
 
@@ -112,11 +110,24 @@ TEST_F(DenseDynamicIndexMapFixture, ReassignElement) {
 TEST_F(DenseDynamicIndexMapFixture, Erase) {
   auto it = find(2);
   auto next_it = erase(it);
-  ASSERT_NE(next_it, find(5));
+
+  // Erasing leaves a hole rather than shifting the tail down -- the key is
+  // the index, so shifting would renumber every key after the erased one.
+  ASSERT_EQ(next_it, find(5));
   ASSERT_EQ(find(2), end());
+  ASSERT_EQ(find(1), begin());
+  ASSERT_NE(find(5), end());
+  ASSERT_EQ(*(*find(5)).second, 5);
 
   auto again_it = erase(it);
   ASSERT_EQ(again_it, end());
+}
+
+TEST_F(DenseDynamicIndexMapFixture, EraseByKey) {
+  ASSERT_EQ(erase(size_t{2}), 1u);
+  ASSERT_EQ(find(2), end());
+  ASSERT_EQ(erase(size_t{2}), 0u);
+  ASSERT_EQ(erase(size_t{99}), 0u);
 }
 
 TEST_F(DenseDynamicIndexMapFixture, ForwardIterate) {

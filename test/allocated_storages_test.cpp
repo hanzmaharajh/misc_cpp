@@ -1,6 +1,6 @@
-#include <misc/allocated_storages.h>
 #include <gmock/gmock-spec-builders.h>
 #include <gtest/gtest.h>
+#include <misc/allocated_storages.h>
 
 #include <algorithm>
 #include <cstddef>

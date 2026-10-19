@@ -13,30 +13,44 @@
 #include "always_false.h"
 #include "log2.h"
 
+/// @brief Which entries an LRUCache evicts first when it runs over budget
 enum class CachingStrategy : uint8_t {
-  // Basic LRU strategy
+  /// @brief Basic LRU. Evicts whatever was used least recently.
   LRU,
 
-  // Size Aware LRU.
-  // Favours evicting larger elements.
+  /// @brief Size Aware LRU. Favours evicting larger elements.
   SizeAwareLRU,
 
-  // Size and Popularity Aware.
-  // Favours evicting larger and less accessed elements.
+  /// @brief Size and Popularity Aware. Favours evicting larger and less
+  /// accessed elements.
   SizeAndPopularityAwareLRU
 };
 
 // TODO: Consider if SizeCalculator is the best approach. The size could be
 // supplied on insertion instead.
-//
-// NOTE: SizeCalculatorType is a function object that accepts an object of type
-// Value and returns its size.
+
+/// @brief A cache with a size budget rather than an entry-count limit.
+///
+/// The "size" of a value is whatever SizeCalculatorType reports for it. Once
+/// the summed size passes @c high_watermark the cache evicts entries until
+/// it is back under @c low_watermark. Which entries go depends on
+/// CacheStrategy.
+/// @tparam Key The key type
+/// @tparam Value The cached type
+/// @tparam CacheStrategy Which eviction strategy to use
+/// @tparam SizeCalculatorType A function object returning a Value's size
+/// @tparam Compare The key ordering
+/// @tparam ClockType The clock used for idle times. It needs now(),
+/// time_point and duration.
 template <typename Key, typename Value, CachingStrategy CacheStrategy,
           typename SizeCalculatorType, typename Compare = std::less<Key>,
           typename ClockType = std::chrono::steady_clock>
 class LRUCache {
  public:
+  /// @brief What insert() takes: a key and the value to cache under it
   using value_type = std::pair<Key, Value>;
+
+  /// @brief The type sizes and watermarks are measured in
   using cache_size_type = size_t;
 
  protected:
@@ -198,6 +212,9 @@ class LRUCache {
   cache_size_type m_high_watermark;
   cache_size_type m_low_watermark;
 
+  /// @brief The implementation behind fetch()
+  /// @param k The key to look up
+  /// @return A pointer to the cached value, or nullptr if the key is absent
   Value* pro_fetch(const Key& k) {
     if (const auto& map_it = m_keys_to_locators.find(k);
         map_it != std::end(m_keys_to_locators)) {
@@ -227,10 +244,13 @@ class LRUCache {
     }
   }
 
+  /// @brief Evicts entries until the cache is no bigger than @p watermark,
+  /// or until it is empty
+  /// @param watermark The size to drain down to
   void pro_evict(size_t watermark) {
     if constexpr (CacheStrategy == CachingStrategy::LRU) {
       // We don't need to rank any scores with a normal LRU cache
-      while (m_waterlevel > watermark) {
+      while (m_waterlevel > watermark && !m_buckets[0].empty()) {
         auto& bucket = m_buckets[0];
         auto& element = bucket.front();
         m_waterlevel -= element.size;
@@ -252,15 +272,16 @@ class LRUCache {
         // consider the units, in the score calculation, it works.
         typename ClockType::duration score;
 
-        // Less-than - for the heap we'll create
-        bool operator<(const Score& rhs) const { return score > rhs.score; }
+        // Less-than - for the max-heap we'll create. The highest scoring
+        // bucket is the one we want to evict from first.
+        bool operator<(const Score& rhs) const { return score < rhs.score; }
       };
 
       // Our scoring function.
       const auto& score_func = [&](auto bucket_it, const auto& element) {
         // <Time in the cache> * <group-size that the bucket holds>
         return (now - element.last_access_time) *
-               (size_t{1}  << std::distance(std::begin(m_buckets), bucket_it));
+               (size_t{1} << std::distance(std::begin(m_buckets), bucket_it));
       };
 
       std::vector<Score> scores;
@@ -275,8 +296,13 @@ class LRUCache {
 
       std::make_heap(std::begin(scores), std::end(scores));
 
-      while (m_waterlevel > watermark) {
-        // Since we have a heap, the largest score is in the back.
+      while (m_waterlevel > watermark && !scores.empty()) {
+        // Move the highest scoring bucket out of the heap and onto the back
+        // of the vector. Without this pop_heap, back() is just whatever
+        // happens to be last in the heap's array -- only the *front* of a
+        // heap is the maximum.
+        std::pop_heap(std::begin(scores), std::end(scores));
+
         auto& score = scores.back();
         auto& bucket = *score.bucket_it;
         auto& element = bucket.front();
@@ -305,29 +331,49 @@ class LRUCache {
   // high_watermark, the cache will drain elements until its size is below
   // low_watermark. The sc object is responsible for providing the size of
   // elements.
+  /// @brief Constructs an empty cache
+  /// @param high_watermark The size the cache may not exceed. Going over it
+  /// drains the cache down below @p low_watermark.
+  /// @param low_watermark The size the cache is drained back down to
+  /// @param sc The object that reports the size of a cached value
   LRUCache(cache_size_type high_watermark, cache_size_type low_watermark,
            SizeCalculatorType sc = SizeCalculatorType())
       : m_size_calculator(std::move(sc)),
         m_high_watermark(high_watermark),
         m_low_watermark(low_watermark) {}
 
-  // No copying! (Our iterators will get all messed up.)
+  /// @brief Not copyable. The cache holds iterators into its own
+  /// containers, which a copy would leave pointing at the original.
   LRUCache(const LRUCache&) = delete;
+
+  /// @copydoc LRUCache(const LRUCache&)
   LRUCache& operator=(const LRUCache&) = delete;
 
-  // NOTE: the input parameter is not left in a consistent state. Call clear()
-  // to reset it to a valid state.
+  /// @brief Takes over the contents of another cache
+  /// @note The moved-from cache is not left in a consistent state. Call
+  /// clear() on it before using it again.
   LRUCache(LRUCache&&) = default;
-  // NOTE: the input parameter is not left in a consistent state. Call clear()
-  // to reset it to a valid state.
+
+  /// @copydoc LRUCache(LRUCache&&)
   LRUCache& operator=(LRUCache&&) = default;
 
   // NOTE: Although this returns a non-const pointer. The value's size will not
   // be calculated again. Take care not to alter its size.
+  /// @brief Looks up a key, marking the entry as recently used
+  /// @param k The key to look up
+  /// @return A pointer to the cached value, or nullptr if the key is absent
+  /// @note Although this hands back a non-const pointer, the value's size
+  /// is not recalculated. Take care not to alter its size.
   Value* fetch(const Key& k) { return pro_fetch(k); }
 
   // NOTE: Although this returns a non-const ref. The value's size will not
   // be calculated again. Take care not to alter its size.
+  /// @brief Looks up a key, marking the entry as recently used
+  /// @param k The key to look up
+  /// @return A reference to the cached value
+  /// @throws std::out_of_range if the key is absent
+  /// @note Although this hands back a non-const reference, the value's size
+  /// is not recalculated. Take care not to alter its size.
   Value& at(const Key& k) {
     Value* v = fetch(k);
     if (v) return *v;
@@ -338,6 +384,14 @@ class LRUCache {
   //
   // If an entry already exists, the cache is unchanged. The cached value is
   // untouched. NOTE: If an element already exists, it is not "touched".
+  /// @brief Inserts a key/value pair, evicting entries if that would take
+  /// the cache over its high watermark
+  /// @param kv The key and value to insert
+  /// @return A reference to the cached value and whether it was the one
+  /// just inserted. An existing entry is left untouched and is not marked
+  /// as recently used.
+  /// @note Inserting an element larger than the high watermark evicts
+  /// everything else and keeps it anyway.
   std::pair<Value&, bool> insert(value_type&& kv) {
     auto& [key, value] = kv;
 
@@ -374,6 +428,7 @@ class LRUCache {
     return {element_it->value, true};
   }
 
+  /// @copydoc insert(value_type&&)
   std::pair<Value&, bool> insert(const value_type& kv) {
     return insert(value_type{kv});
   }
@@ -382,6 +437,9 @@ class LRUCache {
   //
   // NOTE: Return value can only be 1 or 0. (This follows the std::map::erase()
   // interface.)
+  /// @brief Removes the entry with the given key, if there is one
+  /// @param k The key to remove
+  /// @return 1 if an entry was removed, 0 if the key was absent
   size_t erase(const Key& k) {
     if (const auto& map_it = m_keys_to_locators.find(k);
         map_it == std::end(m_keys_to_locators)) {
@@ -399,8 +457,12 @@ class LRUCache {
     }
   }
 
+  /// @brief Returns the summed size of everything cached, as reported by
+  /// the size calculator
+  /// @return The current waterlevel
   [[nodiscard]] cache_size_type cache_size() const { return m_waterlevel; }
 
+  /// @brief Removes every entry and resets the waterlevel to zero
   void clear() {
     for (auto&& bucket : m_buckets) {
       bucket.clear();
@@ -410,6 +472,10 @@ class LRUCache {
     m_waterlevel = {};
   }
 
+  /// @brief Returns the number of cached entries
+  /// @return The entry count
+  /// @note This is a count of entries, not their summed size. For that,
+  /// see cache_size().
   [[nodiscard]] size_t size() const {
     assert(std::size(m_keys_to_locators) ==
            (std::accumulate(

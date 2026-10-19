@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+#include <cstdint>
 #include <type_traits>
 
 #include "always_false.h"
@@ -15,6 +17,10 @@
 
 namespace misc {
 
+/// @brief Returns the base-2 logarithm of an unsigned integer, rounded down
+/// @tparam T An unsigned integral type
+/// @param i The value. It must be greater than zero.
+/// @return The index of the most significant set bit
 template <typename T>
 [[nodiscard]] constexpr inline int log2(T i) {
   assert(i > 0);

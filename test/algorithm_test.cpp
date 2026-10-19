@@ -284,3 +284,19 @@ TEST(is, is) {
   ASSERT_TRUE(is(1, le_all_of, 1, 2, 3));
   ASSERT_FALSE(is(4, le_all_of, 1, 2, 3));
 }
+// Regression test for: the eq_any_of / lt_all_of / ... tag objects were
+// non-inline namespace-scope *definitions* in the header, so any second
+// translation unit that included misc/algorithm.h produced a duplicate
+// symbol at link time. That this file and algorithm_odr_test.cpp both
+// include the header and still link is the test; this just keeps the
+// objects referenced from both TUs so nothing optimises them away.
+TEST(Algorithm, IsComparesAgainstEveryArgument) {
+  EXPECT_TRUE(misc::is(3, misc::eq_any_of, 1, 2, 3));
+  EXPECT_FALSE(misc::is(4, misc::eq_any_of, 1, 2, 3));
+  EXPECT_TRUE(misc::is(3, misc::ne_all_of, 1, 2));
+  EXPECT_FALSE(misc::is(3, misc::ne_all_of, 1, 3));
+  EXPECT_TRUE(misc::is(5, misc::gt_all_of, 1, 2, 3));
+  EXPECT_TRUE(misc::is(5, misc::ge_all_of, 5, 2));
+  EXPECT_TRUE(misc::is(1, misc::lt_any_of, 0, 2));
+  EXPECT_TRUE(misc::is(1, misc::le_all_of, 1, 2));
+}

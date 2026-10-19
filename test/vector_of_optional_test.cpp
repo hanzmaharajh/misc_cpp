@@ -47,12 +47,18 @@ TEST_F(vector_of_optionalSingleFixture, Iterators) {
   const auto& r = *b;
   ASSERT_NE(r, nullptr);
   ASSERT_EQ(*r, 10);
-  
+
   ASSERT_EQ(++begin(), end());
-  ASSERT_EQ(begin()++, end());
   ASSERT_EQ(begin(), --end());
-  const auto& e = end()--;
-  ASSERT_EQ(e, begin());
+
+  // Postfix hands back the value from *before* the step.
+  auto fwd = begin();
+  ASSERT_EQ(fwd++, begin());
+  ASSERT_EQ(fwd, end());
+
+  auto back = end();
+  ASSERT_EQ(back--, end());
+  ASSERT_EQ(back, begin());
 }
 
 TEST_F(vector_of_optionalSingleFixture, Replace) {
